@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float walkSpeed = 10f;
     [SerializeField] float runSpeed = 30f;
     [SerializeField] float jumpHeight = 5f;
-    [SerializeField] float rollDistance = 5f;
+    [SerializeField] float rollDistance = 544f;
     Vector2 moveInput;
     int runInput;
     Rigidbody2D myRigidbody;
@@ -57,13 +57,21 @@ public class PlayerMovement : MonoBehaviour
             myBodyCollider.size = new Vector2 (0.7141247f, 0.7f);
             myBodyCollider.offset = new Vector2 (-0.004566193f, -0.5f);
             Debug.Log(myBodyCollider.size);
-            myRigidbody.velocity += new Vector2 (rollDistance, 0);
+            //myRigidbody.AddForce(rollVector * rollDistance, ForceMode2D.Impulse);
         }
     }
     void UpdateSpeed()
     {
-        Vector2 playerVelocity = new Vector2 ((moveInput.x * walkSpeed), myRigidbody.velocity.y);
-        myRigidbody.velocity = playerVelocity;
+        //Vector2 playerVelocity = new Vector2 ((moveInput.x * walkSpeed), myRigidbody.velocity.y);
+        //myRigidbody.velocity = playerVelocity;
+
+        Vector2 playerVelocity = new Vector2 (myRigidbody.velocity.x, myRigidbody.velocity.y);
+        myRigidbody.AddForce(moveInput * walkSpeed);
+
+        if(moveInput.x == 0 && (Mathf.Abs(myRigidbody.velocity.y) <= Mathf.Epsilon))
+        {
+            myRigidbody.velocity = new Vector2 (0, myRigidbody.velocity.y);
+        }
     }
 
     void UpdateAnimation()
