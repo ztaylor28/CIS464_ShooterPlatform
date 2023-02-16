@@ -15,7 +15,6 @@ public class PlayerMovement : MonoBehaviour
     Animator myAnimator;
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
-    bool held = false;
 
     void Start()
     {
@@ -28,15 +27,19 @@ public class PlayerMovement : MonoBehaviour
     
     void Update()
     {
-        UpdateSpeed();
         FlipSprite();
         UpdateAnimation();
+        UpdateSpeed();
+    }
+
+    private void FixedUpdate() 
+    {
+        UpdateSpeedFixed();
     }
 
     void OnMove(InputValue value)
     {
         moveInput = value.Get<Vector2>();
-        Debug.Log(moveInput);
     }
 
     void OnJump(InputValue value)
@@ -45,32 +48,46 @@ public class PlayerMovement : MonoBehaviour
         
         if(value.isPressed)
         {
-            myRigidbody.velocity += new Vector2 (0f, jumpHeight);
+            myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
         }
     }
 
-
+    void OnRun(InputValue value)
+    {
+        if(value.isPressed)
+        {
+            myRigidbody.AddForce(moveInput * runSpeed, ForceMode2D.Impulse);
+        }
+    }
     void OnRoll(InputValue value)
     {
         if(value.isPressed)
         {
-            myBodyCollider.size = new Vector2 (0.7141247f, 0.7f);
-            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.5f);
-            Debug.Log(myBodyCollider.size);
-            //myRigidbody.AddForce(rollVector * rollDistance, ForceMode2D.Impulse);
+            myBodyCollider.size = new Vector2 (0.7141247f, 0.6f);
+            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.4f);
+            myRigidbody.AddForce(moveInput * rollDistance, ForceMode2D.Impulse);
         }
     }
+    void UpdateSpeedFixed() //This function updates on a fixed timeframe. This is optimal for physics applications.
+    {
+        if(Mathf.Abs(myRigidbody.velocity.x) <= Mathf.Abs(walkSpeed))
+        {
+            myRigidbody.AddForce(moveInput * walkSpeed * walkSpeed);
+        }
+        Debug.Log(myRigidbody.velocity.x);
+
+        if(moveInput.x == 0 && myRigidbody.velocity.y <= 0.5) //This is a horrilbe way to implement this. -Zach (Implemented by Zach)
+        {
+            myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
+            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
+        }
+    }
+
     void UpdateSpeed()
     {
-        //Vector2 playerVelocity = new Vector2 ((moveInput.x * walkSpeed), myRigidbody.velocity.y);
-        //myRigidbody.velocity = playerVelocity;
-
-        Vector2 playerVelocity = new Vector2 (myRigidbody.velocity.x, myRigidbody.velocity.y);
-        myRigidbody.AddForce(moveInput * walkSpeed);
-
-        if(moveInput.x == 0 && (Mathf.Abs(myRigidbody.velocity.y) <= Mathf.Epsilon))
+        if(moveInput.x == 0)
         {
-            myRigidbody.velocity = new Vector2 (0, myRigidbody.velocity.y);
+            myRigidbody.velocity = new Vector2 (0, myRigidbody.velocity.y); //This code instantly stops the player's X velocity.
         }
     }
 
@@ -79,14 +96,20 @@ public class PlayerMovement : MonoBehaviour
         bool playerHasBothSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon && Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
         myAnimator.SetBool("isJumping", playerHasBothSpeed);
 
-        bool playerHasHorizontalSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
+        bool playerHasHorizontalSpeed = (Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon) && (myBodyCollider.size.y > 1);
         myAnimator.SetBool("isWalking", playerHasHorizontalSpeed);
 
         bool playerHasVerticalSpeed = Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
         myAnimator.SetBool("isJumping", playerHasVerticalSpeed);
+
+        bool playerIsRunning = (Mathf.Abs(myRigidbody.velocity.x) >= (runSpeed+5f));
+        myAnimator.SetBool("isRunning", playerIsRunning);
+
+        bool playerIsRollng = myBodyCollider.size.y < 1;
+        myAnimator.SetBool("isRolling", playerIsRollng);
     }
 
-    void FlipSprite()
+    void FlipSprite() //Function Flips the sprite around
     {
         bool playerHasHorizontalSpeed =  Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
 
