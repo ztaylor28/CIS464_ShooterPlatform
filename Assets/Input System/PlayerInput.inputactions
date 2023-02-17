@@ -42,22 +42,22 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Run",
+                    "name": "Roll",
                     "type": "Value",
-                    "id": "8be08b03-e829-43b3-90c8-7d69da5914e1",
-                    "expectedControlType": "Integer",
+                    "id": "3a40d9fb-ecb9-46ad-a445-c9e71417445b",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Roll",
-                    "type": "Button",
-                    "id": "3a40d9fb-ecb9-46ad-a445-c9e71417445b",
-                    "expectedControlType": "Button",
+                    "name": "Run",
+                    "type": "Value",
+                    "id": "6081e4e8-1c96-4b16-99ac-99d821e932a0",
+                    "expectedControlType": "Analog",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -294,23 +294,23 @@
                 },
                 {
                     "name": "",
-                    "id": "7da6f9bc-d082-4846-a7c6-6b0b5efea4ff",
-                    "path": "<Keyboard>/leftShift",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Run",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "59d284fe-2900-48c4-9582-086bcc43e2f9",
                     "path": "<Keyboard>/leftCtrl",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Roll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "386eb873-cb95-41b8-9403-8822479718be",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Run",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

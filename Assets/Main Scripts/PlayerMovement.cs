@@ -15,7 +15,13 @@ public class PlayerMovement : MonoBehaviour
     Animator myAnimator;
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
+    bool isRunning, isRolling, isJumping;
+    private PlayerInput _controls;
 
+    void Awake()
+    {
+        _controls = new PlayerInput();
+    }
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
@@ -27,70 +33,95 @@ public class PlayerMovement : MonoBehaviour
     
     void Update()
     {
-        FlipSprite();
+        FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
-        UpdateSpeed();
+        UpdateSpeed(); //Handles the stopping of the Player instantly. Allows tight controls.
+        isRunning = _controls.Player.Run.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftShift)
+        isRolling = _controls.Player.Roll.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftControl)
+        isJumping = _controls.Player.Jump.ReadValue<float>() > 0; //This checks if key is held or not. (Default: Spacebar)
     }
 
     private void FixedUpdate() 
     {
-        UpdateSpeedFixed();
+        UpdateSpeedFixed(); //This will handle all speed and forces.
     }
 
     void OnMove(InputValue value)
     {
-        moveInput = value.Get<Vector2>();
+        moveInput = value.Get<Vector2>(); //This just checks if the player is moving at all. This is called by the input controller.
     }
 
-    void OnJump(InputValue value)
-    {
-        if(!myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {return;}
-        
-        if(value.isPressed)
-        {
-            myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
-        }
-    }
-
-    void OnRun(InputValue value)
-    {
-        if(value.isPressed)
-        {
-            myRigidbody.AddForce(moveInput * runSpeed, ForceMode2D.Impulse);
-        }
-    }
-    void OnRoll(InputValue value)
-    {
-        if(value.isPressed)
-        {
-            myBodyCollider.size = new Vector2 (0.7141247f, 0.6f);
-            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.4f);
-            myRigidbody.AddForce(moveInput * rollDistance, ForceMode2D.Impulse);
-        }
-    }
     void UpdateSpeedFixed() //This function updates on a fixed timeframe. This is optimal for physics applications.
     {
-        if(Mathf.Abs(myRigidbody.velocity.x) <= Mathf.Abs(walkSpeed))
-        {
-            myRigidbody.AddForce(moveInput * walkSpeed * walkSpeed);
-        }
-        Debug.Log(myRigidbody.velocity.x);
+        //Debug.Log(myRigidbody.velocity.x); //Activate this to check the characters Speed.
 
-        if(moveInput.x == 0 && myRigidbody.velocity.y <= 0.5) //This is a horrilbe way to implement this. -Zach (Implemented by Zach)
-        {
-            myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
-            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
-        }
+        PlayerWalking(); //Function handles the walk speed.
+        PlayerRolling(); //Function handles the hit box for rolling and animation.
+        PlayerRunning(); //Function handles the run speed and animation
+        PlayerJumping();
     }
 
     void UpdateSpeed()
     {
         if(moveInput.x == 0)
         {
-            myRigidbody.velocity = new Vector2 (0, myRigidbody.velocity.y); //This code instantly stops the player's X velocity.
+            myRigidbody.velocity = new Vector2 (0, myRigidbody.velocity.y); //This code instantly stops the player's X velocity. THIS IMPLEMENTATION MAY NEED TO CHANGE WHEN KNOCKBACK GETS IMPLEMENTED
         }
     }
 
+    void PlayerWalking()
+    {
+        if(Mathf.Abs(myRigidbody.velocity.x) <= Mathf.Abs(walkSpeed))
+        {
+            myRigidbody.AddForce(moveInput * walkSpeed * walkSpeed);
+        }
+    }
+    void PlayerRunning()
+    {
+        if(isRunning)
+        {
+            if(Mathf.Abs(myRigidbody.velocity.x) <= Mathf.Abs(runSpeed))
+            {
+                myRigidbody.AddForce(moveInput * runSpeed);
+            }
+            myAnimator.SetBool("isRunning", true);
+        }
+        else if (!isRunning)
+        {
+            myAnimator.SetBool("isRunning", false);
+        }
+    }
+
+    void PlayerRolling()
+    {
+        if(isRolling) //If player is holding roll key then change to half hitbox size.
+        {
+            myBodyCollider.size = new Vector2 (0.7141247f, 0.6f); 
+            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.4f);
+            myAnimator.SetBool("isRolling", true);
+        }
+        else if (!isRolling) //If player is not holding roll key change to full hitbox size.
+        {
+            myAnimator.SetBool("isRolling", false);
+            myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
+            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
+        }
+    }
+    void PlayerJumping()
+    {
+        if(isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
+        {
+            if(!myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {return;} 
+            myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
+        }
+        else if (!isJumping) //If player is not holding jump key
+        {
+            if(Mathf.Sign(myRigidbody.velocity.y) == 1f) //If the player has upward momentum
+            {
+                myRigidbody.velocity = new Vector2 (myRigidbody.velocity.x, 0f); //Make the momentum negative. THIS IMPLEMENTATION MAY NEED TO CHANGE WHEN KNOCKBACK GETS IMPLEMENTED
+            }
+        }
+    }
     void UpdateAnimation()
     {
         bool playerHasBothSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon && Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
@@ -101,12 +132,6 @@ public class PlayerMovement : MonoBehaviour
 
         bool playerHasVerticalSpeed = Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
         myAnimator.SetBool("isJumping", playerHasVerticalSpeed);
-
-        bool playerIsRunning = (Mathf.Abs(myRigidbody.velocity.x) >= (runSpeed+5f));
-        myAnimator.SetBool("isRunning", playerIsRunning);
-
-        bool playerIsRollng = myBodyCollider.size.y < 1;
-        myAnimator.SetBool("isRolling", playerIsRollng);
     }
 
     void FlipSprite() //Function Flips the sprite around
@@ -118,4 +143,15 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector2 (Mathf.Sign(myRigidbody.velocity.x), 1f);
         }
     }
+
+    private void OnEnable() //Leave these in, don't know why. Its just in the documentation.
+    {
+        _controls.Enable();
+    }
+
+    private void OnDisable() //Leave these in, don't know why. Its just in the documentation.
+    {
+        _controls.Disable();
+    }
+    
 }
