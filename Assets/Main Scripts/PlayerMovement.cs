@@ -8,14 +8,14 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float walkSpeed = 10f;
     [SerializeField] float runSpeed = 30f;
     [SerializeField] float jumpHeight = 5f;
-    [SerializeField] float rollDistance = 544f;
-    Vector2 moveInput;
+    [SerializeField] //float rollDistance = 544f;
+    Vector2 moveInput, aimInput;
     int runInput;
     Rigidbody2D myRigidbody;
     Animator myAnimator;
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
-    bool isRunning, isRolling, isJumping;
+    bool isRunning, isRolling, isJumping, isFiring;
     private PlayerInput _controls;
 
     void Awake()
@@ -39,6 +39,7 @@ public class PlayerMovement : MonoBehaviour
         isRunning = _controls.Player.Run.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftShift)
         isRolling = _controls.Player.Roll.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftControl)
         isJumping = _controls.Player.Jump.ReadValue<float>() > 0; //This checks if key is held or not. (Default: Spacebar)
+        isFiring = _controls.Player.Fire.ReadValue<float>() > 0; //This checks if key is held or not. (Default: Left Mouse Button)
     }
 
     private void FixedUpdate() 
@@ -51,6 +52,12 @@ public class PlayerMovement : MonoBehaviour
         moveInput = value.Get<Vector2>(); //This just checks if the player is moving at all. This is called by the input controller.
     }
 
+    void OnLook(InputValue value)
+    {
+        aimInput = value.Get<Vector2>(); //Checks where the player is looking.
+        Debug.Log(aimInput);
+    }
+
     void UpdateSpeedFixed() //This function updates on a fixed timeframe. This is optimal for physics applications.
     {
         //Debug.Log(myRigidbody.velocity.x); //Activate this to check the characters Speed.
@@ -59,6 +66,7 @@ public class PlayerMovement : MonoBehaviour
         PlayerRolling(); //Function handles the hit box for rolling and animation.
         PlayerRunning(); //Function handles the run speed and animation
         PlayerJumping();
+        PlayerFiring();
     }
 
     void UpdateSpeed()
@@ -99,12 +107,15 @@ public class PlayerMovement : MonoBehaviour
             myBodyCollider.size = new Vector2 (0.7141247f, 0.6f); 
             myBodyCollider.offset = new Vector2 (-0.004566193f, -0.4f);
             myAnimator.SetBool("isRolling", true);
+            //GunAnchor.GetComponent<SpriteRenderer>().enabled = false;
+
         }
         else if (!isRolling) //If player is not holding roll key change to full hitbox size.
         {
             myAnimator.SetBool("isRolling", false);
             myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
             myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
+            //GunAnchor.GetComponent<SpriteRenderer>().enabled = true;
         }
     }
     void PlayerJumping()
@@ -120,6 +131,17 @@ public class PlayerMovement : MonoBehaviour
             {
                 myRigidbody.velocity = new Vector2 (myRigidbody.velocity.x, 0f); //Make the momentum negative. THIS IMPLEMENTATION MAY NEED TO CHANGE WHEN KNOCKBACK GETS IMPLEMENTED
             }
+        }
+    }
+    void PlayerFiring()
+    {
+        if(isFiring)
+        {
+            //Placeholder
+        }
+        else if (!isFiring)
+        {
+            //Placeholder
         }
     }
     void UpdateAnimation()

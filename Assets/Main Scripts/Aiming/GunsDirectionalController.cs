@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using GameDevDave;
 
 public class GunsDirectionalController : MonoBehaviour {
@@ -14,6 +15,7 @@ public class GunsDirectionalController : MonoBehaviour {
     [HideInInspector]
     // Mouse location
     public Vector3 mouseLoc, Origin, Target;  
+    Vector2 moveInput, aimInput;
     [Space]
     GunsDirectionalAnimator GunsAnim;   
     // Direction Angle towards target
@@ -67,7 +69,7 @@ public class GunsDirectionalController : MonoBehaviour {
     public void InitialSetup () 
     {
         // Get the mouse location (screen to world)
-        mouseLoc = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mouseLoc = aimInput;
 
         // Get the direction towards the mouse position
         Target = (mouseLoc - Origin);
@@ -77,6 +79,11 @@ public class GunsDirectionalController : MonoBehaviour {
 
         // Calculate the direction towards "Target" as an angle
         targetAngle = Mathf.Atan2(Target.y, Target.x) * Mathf.Rad2Deg;
+    }
+    void OnLook(InputValue value) 
+    {
+        aimInput = value.Get<Vector2>(); //Checks where the player is looking. 
+        Debug.Log(aimInput);
     }
 
     public void AimDual()
