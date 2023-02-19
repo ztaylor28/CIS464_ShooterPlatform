@@ -15,6 +15,10 @@ public class PlayerMovement : MonoBehaviour
     Animator myAnimator;
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
+    SpriteRenderer spriteRender;
+    Transform aimArm;
+    private Transform heldItem = null;
+
     bool isRunning, isRolling, isJumping, isFiring;
     private PlayerInput _controls;
 
@@ -28,12 +32,14 @@ public class PlayerMovement : MonoBehaviour
         myAnimator = GetComponent<Animator>();
         myBodyCollider = GetComponent<CapsuleCollider2D>();
         myFeetCollider = GetComponent<BoxCollider2D>();
+        spriteRender = GetComponent<SpriteRenderer>();
+        aimArm = transform.Find("AimArm");
     }
 
     
     void Update()
     {
-        FlipSprite(); //Function handles which way the sprite is looking.
+        //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
         UpdateSpeed(); //Handles the stopping of the Player instantly. Allows tight controls.
         isRunning = _controls.Player.Run.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftShift)
@@ -52,10 +58,70 @@ public class PlayerMovement : MonoBehaviour
         moveInput = value.Get<Vector2>(); //This just checks if the player is moving at all. This is called by the input controller.
     }
 
+    void OnGrab(InputValue value)
+    {
+        if(!heldItem) // pick up
+        {
+            //Get all pickups that are inside the player sprite
+            Collider2D[] colliders = Physics2D.OverlapBoxAll(transform.position, new Vector2(myBodyCollider.size.x, myBodyCollider.size.y), 0f, LayerMask.GetMask("PickUps"));
+
+            if (colliders.Length < 1) //no items nearby
+                return;
+
+            //Find the closest pickup to the player.
+            Transform closestPickUp = null;
+            foreach (Collider2D collider in colliders)
+            {
+                Transform obj = collider.gameObject.transform;
+
+                if (closestPickUp == null || (obj.position - transform.position).magnitude < (closestPickUp.position - transform.position).magnitude)
+                    closestPickUp = obj;
+            }
+
+            closestPickUp.GetComponent<BoxCollider2D>().enabled = false; //Gun does not need a hitbox when held.
+            closestPickUp.GetComponent<Rigidbody2D>().isKinematic = true; //so gun doesn't have actual physics when held
+
+            //Same local scale as player.
+            closestPickUp.localScale = new Vector2 (Mathf.Sign(transform.localScale.x) * Mathf.Abs(closestPickUp.localScale.x), closestPickUp.localScale.y);
+
+            //snap to play
+            closestPickUp.rotation = aimArm.Find("Hold").rotation;
+            closestPickUp.position = aimArm.Find("Hold").position + (closestPickUp.position - closestPickUp.Find("Grip").transform.position);
+            closestPickUp.parent = aimArm.Find("Hold");
+
+            heldItem = closestPickUp;
+        }
+        else //throw
+        {
+            heldItem.GetComponent<BoxCollider2D>().enabled = true;
+            heldItem.GetComponent<Rigidbody2D>().isKinematic = false;
+            heldItem.parent = null; //back to scene
+
+            heldItem.GetComponent<Rigidbody2D>().AddForce(-aimArm.up * 500);
+
+            heldItem = null;
+        }
+    }
+
     void OnLook(InputValue value)
     {
         aimInput = value.Get<Vector2>(); //Checks where the player is looking.
-        Debug.Log(aimInput);
+        aimInput = Camera.main.ScreenToWorldPoint(aimInput); //Convert input to actual screen position
+        
+        Vector2 aimVector = (aimInput - (Vector2) aimArm.position);
+        aimArm.up = -aimVector.normalized;
+
+         /* Other way is to calculate the angle, keeping it for notes
+            float angle = Mathf.Atan2(aimVector.y, aimVector.x) * Mathf.Rad2Deg;
+            aimArm.transform.eulerAngles = new Vector3(0,0,angle);
+        */
+
+        //Verify if player should flip
+        float angle = aimArm.eulerAngles.z;
+        if (angle <= 180 &&  angle > 0)
+            FlipSprite(1);
+        else
+            FlipSprite(-1);
     }
 
     void UpdateSpeedFixed() //This function updates on a fixed timeframe. This is optimal for physics applications.
@@ -135,9 +201,12 @@ public class PlayerMovement : MonoBehaviour
     }
     void PlayerFiring()
     {
+        if(!heldItem) //not holding anything
+            return;
+
         if(isFiring)
         {
-            //Placeholder
+            heldItem.GetComponent<PickUp>().Fire();
         }
         else if (!isFiring)
         {
@@ -164,6 +233,11 @@ public class PlayerMovement : MonoBehaviour
         {
             transform.localScale = new Vector2 (Mathf.Sign(myRigidbody.velocity.x), 1f);
         }
+    }
+
+    void FlipSprite(int sign)
+    {
+        transform.localScale = new Vector2 (sign, 1f);
     }
 
     private void OnEnable() //Leave these in, don't know why. Its just in the documentation.
