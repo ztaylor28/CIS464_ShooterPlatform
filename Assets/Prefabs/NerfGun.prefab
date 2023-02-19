@@ -182,8 +182,9 @@ MonoBehaviour:
   TYPE: GUN
   cooldown: 0.5
   shotSpeed: 25
-  spread: 0
   recoil: 0
+  numBullets: 1
+  spread: 0
   bullet: {fileID: 634590873741608895, guid: 4fda695fd43d13a48bded21331d76c48, type: 3}
 --- !u!1 &4154340245918373653
 GameObject:

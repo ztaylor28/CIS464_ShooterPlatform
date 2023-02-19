@@ -173,16 +173,17 @@ public class PlayerMovement : MonoBehaviour
             myBodyCollider.size = new Vector2 (0.7141247f, 0.6f); 
             myBodyCollider.offset = new Vector2 (-0.004566193f, -0.4f);
             myAnimator.SetBool("isRolling", true);
-            //GunAnchor.GetComponent<SpriteRenderer>().enabled = false;
-
         }
         else if (!isRolling) //If player is not holding roll key change to full hitbox size.
         {
             myAnimator.SetBool("isRolling", false);
             myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
             myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
-            //GunAnchor.GetComponent<SpriteRenderer>().enabled = true;
         }
+
+        aimArm.GetComponent<SpriteRenderer>().enabled = !isRolling;
+        if(heldItem)
+            heldItem.GetComponent<SpriteRenderer>().enabled = !isRolling;
     }
     void PlayerJumping()
     {

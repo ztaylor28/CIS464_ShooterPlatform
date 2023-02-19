@@ -5311,10 +5311,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: NerfGun
       objectReference: {fileID: 0}
-    - target: {fileID: 4154340244529573424, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
-      propertyPath: m_Layer
-      value: 7
-      objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_RootOrder
       value: 1

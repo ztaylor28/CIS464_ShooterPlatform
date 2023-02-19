@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 634590873741608832}
   - component: {fileID: 634590873741608835}
   - component: {fileID: 6543096272176454896}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121,10 +121,10 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.020080455, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0.5}
     oldSize: {x: 0.04, y: 0.01}
     newSize: {x: 0.04, y: 0.01}
     adaptiveTilingThreshold: 0.5
@@ -132,7 +132,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.04, y: 0.01}
+  m_Size: {x: 0.03989981, y: 0.01}
   m_EdgeRadius: 0
 --- !u!114 &6543096272176454896
 MonoBehaviour:
