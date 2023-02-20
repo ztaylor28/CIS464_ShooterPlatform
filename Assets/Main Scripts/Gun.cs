@@ -6,30 +6,42 @@ public class Gun : PickUp
 {
     [SerializeField] float cooldown = 1;
     [SerializeField] float shotSpeed = 1;
+    [SerializeField] float shotDecay = 0; //Randomized shot speed offset. Can affect shotspeed
     [SerializeField] float recoil = 0; //maybe
     [SerializeField] float numBullets = 1;
-    [SerializeField] float spread = 0; //If by itself, will determine a random spread (good for fastfire?) If not, will be used as angle for multishot. NOTE: Best cases are ODD numbers.
+    [SerializeField] float spread = 0; //The angle for multishot, which is set.
+    [SerializeField] float aimDecay = 0; //Randomized angle. Can affect spread.
     [SerializeField] GameObject bullet = null;
     private float lastShot = 0;
     private float delayTime = 0.005f; //Waits 0.005 seconds in order to shoot the bullet. This is needed for extreme high shot speeds.
 
+    private Transform grip;
+    private Transform barrel;
+
     public Gun() : base("GUN"){} 
-    public override void Fire()
+
+    public void Start()
     {
-        if(Time.time > lastShot) //cooldown
+        grip = transform.Find("Grip");
+        barrel = transform.Find("Barrel");
+    }
+    public override void Fire(Transform player)
+    {
+        if(Time.time > lastShot && canShoot()) //cooldown
         {
             lastShot = Time.time + cooldown;
 
             float rotationStart = Mathf.Floor(numBullets/2) * -spread;
+
             for(int i = 0; i < numBullets; i++)
             {
                 GameObject currentBullet = Instantiate(bullet); //spawn bullet
-                Transform barrel = transform.Find("Barrel");
+                
 
                 Vector2 aimVector = barrel.transform.TransformDirection(Vector2.right); //get the local vectorspace
                 currentBullet.transform.right = aimVector;
                 currentBullet.transform.position = barrel.position;
-                currentBullet.transform.eulerAngles +=  new Vector3(0,0, rotationStart + spread * i);
+                currentBullet.transform.eulerAngles +=  new Vector3(0,0, Random.Range(-aimDecay, aimDecay) + rotationStart + spread * i);
                 //currentBullet.GetComponent<Rigidbody2D>().velocity = aimVector * shotSpeed; | Old method, before multi-bullets
                 
                 //Rather than doing it instant, we add a delay to make it appear
@@ -37,6 +49,10 @@ public class Gun : PickUp
 
                 StartCoroutine(ApplyVelocityDelay(currentBullet));
             }
+
+            //Apply recoil
+            if (recoil > 0)
+                player.GetComponent<Rigidbody2D>().AddForce(-barrel.TransformDirection(Vector2.right) * recoil, ForceMode2D.Impulse);
         }
     }
 
@@ -45,6 +61,14 @@ public class Gun : PickUp
         // Wait for a short delay
         yield return new WaitForSeconds(delayTime);
 
-        bullet.GetComponent<Rigidbody2D>().velocity = bullet.transform.right * shotSpeed;
+        bullet.GetComponent<Rigidbody2D>().velocity = bullet.transform.right * (shotSpeed - Random.Range(-shotDecay, shotDecay));
+    }
+
+    public bool canShoot() //Check if the gun is inside of a Ground block. If so, do not shoot.
+    {
+        Vector2 gripToBarrel = barrel.position - grip.position;
+        RaycastHit2D hit = Physics2D.Raycast(grip.position, gripToBarrel.normalized, gripToBarrel.magnitude, LayerMask.GetMask("Ground")); //raycast from grip to barrel, checking if it intersecting ground
+
+        return !hit.collider;
     }
 }

@@ -202,12 +202,13 @@ public class PlayerMovement : MonoBehaviour
     }
     void PlayerFiring()
     {
-        if(!heldItem) //not holding anything
+        if(!heldItem || isRolling) //not holding anything or rolling
             return;
 
         if(isFiring)
         {
-            heldItem.GetComponent<PickUp>().Fire();
+            PickUp pickUp = heldItem.GetComponent<PickUp>();
+            pickUp.Fire(transform);
         }
         else if (!isFiring)
         {

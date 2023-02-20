@@ -10,7 +10,7 @@ public class PickUp : MonoBehaviour
         this.TYPE = TYPE;
     }
 
-    public virtual void Fire()
+    public virtual void Fire(Transform player)
     {
         print("You forgot to overwrite the fire.");
     }

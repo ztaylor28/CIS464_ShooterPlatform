@@ -21,6 +21,6 @@ public class Bullet : MonoBehaviour
     {
         GameObject contact = collision.gameObject;
 
-        print("i hit something");
+        //print("i hit something");
     }
 }
