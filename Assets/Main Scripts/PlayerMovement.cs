@@ -20,12 +20,7 @@ public class PlayerMovement : MonoBehaviour
     private Transform heldItem = null;
 
     bool isRunning, isRolling, isJumping, isFiring;
-    private PlayerInput _controls;
 
-    void Awake()
-    {
-        _controls = new PlayerInput();
-    }
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
@@ -36,16 +31,11 @@ public class PlayerMovement : MonoBehaviour
         aimArm = transform.Find("AimArm");
     }
 
-    
     void Update()
     {
         //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
         UpdateSpeed(); //Handles the stopping of the Player instantly. Allows tight controls.
-        isRunning = _controls.Player.Run.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftShift)
-        isRolling = _controls.Player.Roll.ReadValue<float>() > 0; //This checks if key is held or not. (Default: LeftControl)
-        isJumping = _controls.Player.Jump.ReadValue<float>() > 0; //This checks if key is held or not. (Default: Spacebar)
-        isFiring = _controls.Player.Fire.ReadValue<float>() > 0; //This checks if key is held or not. (Default: Left Mouse Button)
     }
 
     private void FixedUpdate() 
@@ -106,9 +96,23 @@ public class PlayerMovement : MonoBehaviour
     void OnLook(InputValue value)
     {
         aimInput = value.Get<Vector2>(); //Checks where the player is looking.
-        aimInput = Camera.main.ScreenToWorldPoint(aimInput); //Convert input to actual screen position
         
-        Vector2 aimVector = (aimInput - (Vector2) aimArm.position);
+        string TYPE = GetComponent<PlayerInput>().currentControlScheme;
+
+        Vector2 aimVector;
+        if(TYPE == "Gamepad")
+        {
+            aimVector = aimInput;
+
+            if (aimVector.magnitude < 0.25) //Sensitivity
+                return;
+        }
+        else
+        {
+            aimInput = Camera.main.ScreenToWorldPoint(aimInput); //Convert input to actual screen position
+            aimVector = (aimInput - (Vector2) aimArm.position);
+        }
+
         aimArm.up = -aimVector.normalized;
 
          /* Other way is to calculate the angle, keeping it for notes
@@ -215,6 +219,7 @@ public class PlayerMovement : MonoBehaviour
             //Placeholder
         }
     }
+
     void UpdateAnimation()
     {
         bool playerHasBothSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon && Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
@@ -241,15 +246,11 @@ public class PlayerMovement : MonoBehaviour
     {
         transform.localScale = new Vector2 (sign, 1f);
     }
-
-    private void OnEnable() //Leave these in, don't know why. Its just in the documentation.
-    {
-        _controls.Enable();
-    }
-
-    private void OnDisable() //Leave these in, don't know why. Its just in the documentation.
-    {
-        _controls.Disable();
-    }
     
+    //HELD BUTTONS
+    void OnFire(InputValue value){isFiring = value.isPressed;}
+
+    void OnRoll(InputValue value){isRolling = value.isPressed;}
+    void OnJump(InputValue value){isJumping = value.isPressed;}
+    void OnRun(InputValue value){isRunning = value.isPressed;}
 }
