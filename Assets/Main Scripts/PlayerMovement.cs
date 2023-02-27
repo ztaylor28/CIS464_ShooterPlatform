@@ -20,8 +20,9 @@ public class PlayerMovement : MonoBehaviour
     private Transform heldItem = null;
 
     bool isRunning, isRolling, isJumping, isFiring;
+    private Vector2 lastGroundedPosition = Vector2.zero; //will be used when calculating average position for camera.
 
-    public bool IsJumping { get => isJumping; set => isJumping = value; }
+    public Vector2 LastGroundedPosition { get => lastGroundedPosition; set => lastGroundedPosition = value; }
 
     void Start()
     {
@@ -38,6 +39,8 @@ public class PlayerMovement : MonoBehaviour
         //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
         UpdateSpeed(); //Handles the stopping of the Player instantly. Allows tight controls.
+
+        if(myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {LastGroundedPosition = transform.position;}  //update lastGrounded if player is indeed grounded.
     }
 
     private void FixedUpdate() 
@@ -194,12 +197,12 @@ public class PlayerMovement : MonoBehaviour
     }
     void PlayerJumping()
     {
-        if(IsJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
+        if(isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
         {
             if(!myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {return;} 
             myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
         }
-        else if (!IsJumping) //If player is not holding jump key
+        else if (!isJumping) //If player is not holding jump key
         {
             if(Mathf.Sign(myRigidbody.velocity.y) == 1f) //If the player has upward momentum
             {
@@ -254,6 +257,6 @@ public class PlayerMovement : MonoBehaviour
     void OnFire(InputValue value){isFiring = value.isPressed;}
 
     void OnRoll(InputValue value){isRolling = value.isPressed;}
-    void OnJump(InputValue value){IsJumping = value.isPressed;}
+    void OnJump(InputValue value){isJumping = value.isPressed;}
     void OnRun(InputValue value){isRunning = value.isPressed;}
 }

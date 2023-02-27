@@ -83,12 +83,19 @@ public class RoundController : MonoBehaviour
     {
         Vector2 avgPosition = Vector2.zero;
 
+        Vector2 strongestPosition = Vector2.zero; // keep track of strongest position, help kill slow players. (Adds another to the average)
+
         foreach (PlayerInput player in players) 
         {
-            avgPosition += (Vector2) player.transform.position;
+            Vector2 lastGroundPos = player.GetComponent<PlayerMovement>().LastGroundedPosition;
+            avgPosition += lastGroundPos;
+
+            if(strongestPosition.y < lastGroundPos.y) 
+                strongestPosition = lastGroundPos;
         }
 
-        avgPosition /= players.Count;
+        avgPosition += strongestPosition; //add the strongest to the average
+        avgPosition /= (players.Count + 1); // + 1 because of the strongestPosition
 
         return avgPosition;
     }
