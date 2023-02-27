@@ -17,7 +17,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573424, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_Name
-      value: AssaultRifle
+      value: AssaultRifle Variant
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573425, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_Sprite
@@ -44,12 +44,24 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.16615024
+      objectReference: {fileID: 0}
+    - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.16615024
+      objectReference: {fileID: 0}
+    - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.16615024
+      objectReference: {fileID: 0}
+    - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -7.1368074
+      value: 1.86
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.807167
+      value: -0.79
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.z

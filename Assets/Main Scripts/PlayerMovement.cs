@@ -21,6 +21,8 @@ public class PlayerMovement : MonoBehaviour
 
     bool isRunning, isRolling, isJumping, isFiring;
 
+    public bool IsJumping { get => isJumping; set => isJumping = value; }
+
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
@@ -70,6 +72,7 @@ public class PlayerMovement : MonoBehaviour
 
             closestPickUp.GetComponent<BoxCollider2D>().enabled = false; //Gun does not need a hitbox when held.
             closestPickUp.GetComponent<Rigidbody2D>().isKinematic = true; //so gun doesn't have actual physics when held
+            closestPickUp.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
 
             //Same local scale as player.
             closestPickUp.localScale = new Vector2 (Mathf.Sign(transform.localScale.x) * Mathf.Abs(closestPickUp.localScale.x), closestPickUp.localScale.y);
@@ -191,12 +194,12 @@ public class PlayerMovement : MonoBehaviour
     }
     void PlayerJumping()
     {
-        if(isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
+        if(IsJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
         {
             if(!myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {return;} 
             myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
         }
-        else if (!isJumping) //If player is not holding jump key
+        else if (!IsJumping) //If player is not holding jump key
         {
             if(Mathf.Sign(myRigidbody.velocity.y) == 1f) //If the player has upward momentum
             {
@@ -244,13 +247,13 @@ public class PlayerMovement : MonoBehaviour
 
     void FlipSprite(int sign)
     {
-        transform.localScale = new Vector2 (sign, 1f);
+        transform.localScale = new Vector2 (sign * Mathf.Abs(transform.localScale.x), transform.localScale.y);
     }
     
     //HELD BUTTONS
     void OnFire(InputValue value){isFiring = value.isPressed;}
 
     void OnRoll(InputValue value){isRolling = value.isPressed;}
-    void OnJump(InputValue value){isJumping = value.isPressed;}
+    void OnJump(InputValue value){IsJumping = value.isPressed;}
     void OnRun(InputValue value){isRunning = value.isPressed;}
 }
