@@ -5,7 +5,10 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     private float startTime = 0;
-    
+    private GameObject shooter; //To know that we can ignore it.
+
+    public GameObject Shooter { get => shooter; set => shooter = value; }
+
     void Start()
     {
         startTime = Time.time;
@@ -19,8 +22,13 @@ public class Bullet : MonoBehaviour
     }
     void OnCollisionEnter2D(Collision2D collision)
     {
-        GameObject contact = collision.gameObject;
+        GameObject player = collision.gameObject;
 
-        //print("i hit something");
+        if(shooter == player){return;} //Bullet hit the shooter, ignore it.
+
+        if(player.tag == "Player")
+        {
+            player.GetComponent<PlayerMovement>().Knockback(transform.right * 500);
+        }
     }
 }

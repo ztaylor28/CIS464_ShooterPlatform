@@ -16,11 +16,14 @@ public class PlayerMovement : MonoBehaviour
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
     SpriteRenderer spriteRender;
+    PlayerInput playerInput;
     Transform aimArm;
     private Transform heldItem = null;
 
-    bool isRunning, isRolling, isJumping, isFiring;
+    bool isRunning, isRolling, isJumping, isFiring, jumped;
+    private float lastJumped = 0; //time until last jumped.
     private Vector2 lastGroundedPosition = Vector2.zero; //will be used when calculating average position for camera.
+    private float lastGroundedTime = 0;
 
     public Vector2 LastGroundedPosition { get => lastGroundedPosition; set => lastGroundedPosition = value; }
 
@@ -31,6 +34,7 @@ public class PlayerMovement : MonoBehaviour
         myBodyCollider = GetComponent<CapsuleCollider2D>();
         myFeetCollider = GetComponent<BoxCollider2D>();
         spriteRender = GetComponent<SpriteRenderer>();
+        playerInput = GetComponent<PlayerInput>();
         aimArm = transform.Find("AimArm");
     }
 
@@ -39,8 +43,6 @@ public class PlayerMovement : MonoBehaviour
         //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
         UpdateSpeed(); //Handles the stopping of the Player instantly. Allows tight controls.
-
-        if(myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {LastGroundedPosition = transform.position;}  //update lastGrounded if player is indeed grounded.
     }
 
     private void FixedUpdate() 
@@ -80,7 +82,7 @@ public class PlayerMovement : MonoBehaviour
             //Same local scale as player.
             closestPickUp.localScale = new Vector2 (Mathf.Sign(transform.localScale.x) * Mathf.Abs(closestPickUp.localScale.x), closestPickUp.localScale.y);
 
-            //snap to play
+            //snap to player
             closestPickUp.rotation = aimArm.Find("Hold").rotation;
             closestPickUp.position = aimArm.Find("Hold").position + (closestPickUp.position - closestPickUp.Find("Grip").transform.position);
             closestPickUp.parent = aimArm.Find("Hold");
@@ -103,7 +105,7 @@ public class PlayerMovement : MonoBehaviour
     {
         aimInput = value.Get<Vector2>(); //Checks where the player is looking.
         
-        string TYPE = GetComponent<PlayerInput>().currentControlScheme;
+        string TYPE = playerInput.currentControlScheme;
 
         Vector2 aimVector;
         if(TYPE == "Gamepad")
@@ -195,12 +197,35 @@ public class PlayerMovement : MonoBehaviour
         if(heldItem)
             heldItem.GetComponent<SpriteRenderer>().enabled = !isRolling;
     }
+
+    bool CanJump() //can the player jump...?
+    {
+        bool grounded = myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
+
+        if(grounded) //player is currently grounded and did NOT jump; update last position and last time.
+        {
+            if(Time.time - lastJumped > 0.1) //so we won't disable a jump that just occurred.
+            {
+                LastGroundedPosition = transform.position;
+                lastGroundedTime = Time.time;
+                jumped = false; //player is not jumping.
+                return true;
+            }
+            return false;
+        }
+        else
+        {
+            return !jumped && (Time.time - lastGroundedTime) < 0.25; //If the player didn't jump and grounded, they may still jump because of lastGroundedTime.
+        }
+    }
+
     void PlayerJumping()
     {
-        if(isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
+        if(CanJump() && isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
         {
-            if(!myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"))) {return;} 
             myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
+            jumped = true;
+            lastJumped = Time.time;
         }
         else if (!isJumping) //If player is not holding jump key
         {
@@ -252,6 +277,26 @@ public class PlayerMovement : MonoBehaviour
     {
         transform.localScale = new Vector2 (sign * Mathf.Abs(transform.localScale.x), transform.localScale.y);
     }
+
+    public void Knockback(Vector2 vector) //knockback the player.
+    {
+        myRigidbody.AddForce(vector, ForceMode2D.Impulse);
+
+        if (playerInput.currentControlScheme == "Gamepad")
+        {
+            StartCoroutine(RumbleController()); //Uses a coroutine as we want rumble to stop after a while
+        }
+    }
+
+    IEnumerator RumbleController()
+    {
+        Gamepad.current.SetMotorSpeeds(0.25f, 0.25f);
+         
+        // Wait for a short delay
+        yield return new WaitForSeconds(0.1f);
+
+        Gamepad.current.SetMotorSpeeds(0f, 0f); //stop rumble
+    }
     
     //HELD BUTTONS
     void OnFire(InputValue value){isFiring = value.isPressed;}
@@ -259,4 +304,10 @@ public class PlayerMovement : MonoBehaviour
     void OnRoll(InputValue value){isRolling = value.isPressed;}
     void OnJump(InputValue value){isJumping = value.isPressed;}
     void OnRun(InputValue value){isRunning = value.isPressed;}
+
+    //DevConsole
+    void OnDevConsole()
+    {
+        GameObject.Find("Canvas").transform.Find("Console").GetComponent<DevConsole>().Toggle(playerInput); //Toggle the dev console, sending the playerinput so it can disable it.
+    }
 }
