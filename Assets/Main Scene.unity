@@ -133,7 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 83642992}
   - component: {fileID: 83642993}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -297,7 +297,7 @@ GameObject:
   m_Component:
   - component: {fileID: 133174513}
   - component: {fileID: 133174514}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -381,7 +381,7 @@ GameObject:
   m_Component:
   - component: {fileID: 168347789}
   - component: {fileID: 168347790}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4197,7 +4197,7 @@ GameObject:
   m_Component:
   - component: {fileID: 269118902}
   - component: {fileID: 269118903}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw11
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4372,6 +4372,17 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &339927965 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1532413434404091860, guid: 25c8d8e63dfcc024084ac7fed2a7f2a3, type: 3}
+  m_PrefabInstance: {fileID: 1454635306}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339927963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4195095fbeaee544a911bc62000a7fc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &380606093
 GameObject:
   m_ObjectHideFlags: 0
@@ -4511,7 +4522,7 @@ GameObject:
   m_Component:
   - component: {fileID: 441408450}
   - component: {fileID: 441408451}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4595,7 +4606,7 @@ GameObject:
   m_Component:
   - component: {fileID: 488606701}
   - component: {fileID: 488606702}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12095,7 +12106,7 @@ GameObject:
   m_Component:
   - component: {fileID: 514083388}
   - component: {fileID: 514083389}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw12
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12291,7 +12302,7 @@ GameObject:
   m_Component:
   - component: {fileID: 802798883}
   - component: {fileID: 802798884}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw13
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13670,7 +13681,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1023833312}
   - component: {fileID: 1023833311}
-  m_Layer: 0
+  - component: {fileID: 1023833313}
+  m_Layer: 10
   m_Name: KillZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13711,7 +13723,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1023833310}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.9397807, y: -2.6765323, z: 417.012}
+  m_LocalPosition: {x: -2.939781, y: -2.87, z: 417.012}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -13732,6 +13744,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1023833313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023833310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25de321ec536751468caedf3da9285e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roundController: {fileID: 339927965}
+  hazardSpeed: 1
+  sawRotateSpeed: 150
+  targetHazardPosition: {fileID: 2033899080}
 --- !u!1 &1034125205
 GameObject:
   m_ObjectHideFlags: 0
@@ -14323,7 +14351,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1500242589}
   - component: {fileID: 1500242590}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14567,7 +14595,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1705154946}
   - component: {fileID: 1705154947}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw9
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14769,7 +14797,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1786320722}
   - component: {fileID: 1786320723}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14853,7 +14881,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1797874379}
   - component: {fileID: 1797874380}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14937,7 +14965,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1801422419}
   - component: {fileID: 1801422420}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw14
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15021,7 +15049,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1820354400}
   - component: {fileID: 1820354401}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Saw5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15543,6 +15571,37 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!1 &2033899079
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2033899080}
+  m_Layer: 10
+  m_Name: KillZoneTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2033899080
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033899079}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.939781, y: 19.33, z: 417.012}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2065428143
 GameObject:
   m_ObjectHideFlags: 0

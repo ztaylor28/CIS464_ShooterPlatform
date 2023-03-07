@@ -9,7 +9,7 @@ public class RoundController : MonoBehaviour
     [SerializeField] GameObject readyZone; //the door to open.
     private BoxCollider2D readyCollider;
 
-    private bool inProgress = false; //Determine if a round is happening.
+    public bool inProgress = false; //Determine if a round is happening.
     
     private Camera cam;
 
@@ -20,7 +20,7 @@ public class RoundController : MonoBehaviour
 
     private float scrollSpeed = 5;
     
-    private List<Transform> players = new List<Transform>();
+    public List<Transform> players = new List<Transform>();
     
     // Start is called before the first frame update
     void Start()
@@ -41,7 +41,7 @@ public class RoundController : MonoBehaviour
         else if(inProgress) //round is happening.
         {
             UpdateCamera();
-            VerifyElimination();
+            //VerifyElimination();
         }
     }
 
@@ -90,7 +90,7 @@ public class RoundController : MonoBehaviour
         }
     }
 
-    void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
+    /*void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
     {
         List<Transform> toRemove = new List<Transform>();
 
@@ -106,7 +106,7 @@ public class RoundController : MonoBehaviour
             else
                 index++;
         }
-    }
+    }*/
 
     Vector2 GetAveragePosition() //Get the average position of all players.
     {
