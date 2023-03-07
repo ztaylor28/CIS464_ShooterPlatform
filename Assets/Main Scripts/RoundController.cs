@@ -5,6 +5,12 @@ using UnityEngine.InputSystem;
 
 public class RoundController : MonoBehaviour
 {
+    [SerializeField] GameObject door; //the door to open.
+    [SerializeField] GameObject readyZone; //the door to open.
+    private BoxCollider2D readyCollider;
+
+    private bool inProgress = false; //Determine if a round is happening.
+    
     private Camera cam;
 
     private Vector3 lerpStartPos;
@@ -14,23 +20,32 @@ public class RoundController : MonoBehaviour
 
     private float scrollSpeed = 5;
     
-    private List<PlayerInput> players = new List<PlayerInput>();
+    private List<Transform> players = new List<Transform>();
     
     // Start is called before the first frame update
     void Start()
     {
         cam = Camera.main;
         lerpEndPos = cam.transform.position;
+
+        readyCollider = readyZone.GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        UpdateCamera();
-        VerifyElimination();
+        if(players.Count > 0 && !inProgress)
+        {
+            VerifyReadyZone();
+        }
+        else if(inProgress) //round is happening.
+        {
+            UpdateCamera();
+            VerifyElimination();
+        }
     }
 
-    void UpdateCamera()
+    void UpdateCamera() //Update the camera based on average position of all players.
     {
         if(players.Count > 0)
         {
@@ -47,7 +62,7 @@ public class RoundController : MonoBehaviour
             }
         }
 
-        if(lerpEndPos.y != cam.transform.position.y) //we still need to d movement!
+        if(lerpEndPos.y != cam.transform.position.y) //we still need to movement!
         {
             lerpCurrentTime += Time.deltaTime;
             float lerpPerc = Mathf.Clamp01(lerpCurrentTime/lerpGoalTime); //we want to make sure clamp is stuck between 0 and 1 just in case.
@@ -55,21 +70,35 @@ public class RoundController : MonoBehaviour
         }
     }
 
-    float EaseOut(float t)
+    float EaseOut(float t) //This is not used at the moment, but it can be used to ease (Use it on the time percentage of lerp)
     {
         return 1 - Mathf.Pow(1 - t, 2);
     }
 
+    void VerifyReadyZone()
+    {
+        List<Collider2D> playersReady = new List<Collider2D>();
+        ContactFilter2D cf = new ContactFilter2D();
+        cf.SetLayerMask(LayerMask.GetMask("Player"));
+
+        readyCollider.OverlapCollider(cf, playersReady);
+
+        if(playersReady.Count == players.Count * 2) //It is palyers.Count * 2 because of the feet collider also count as a player lol
+        {
+             door.GetComponent<Door>().OpenDoors();
+             inProgress = true;
+        }
+    }
+
     void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
     {
-        List<PlayerInput> toRemove = new List<PlayerInput>();
-
+        List<Transform> toRemove = new List<Transform>();
 
         int index = 0;
         while(index < players.Count)
         {
-            PlayerInput player = players[index];
-            if(cam.WorldToScreenPoint(player.transform.position + new Vector3(0, player.transform.GetComponent<CapsuleCollider2D>().size.y/2)).y < 0) //position from the top of the player collision
+            Transform player = players[index];
+            if(cam.WorldToScreenPoint(player.position + new Vector3(0, player.GetComponent<CapsuleCollider2D>().size.y/2)).y < 0) //position from the top of the player collision
             {
                 players.RemoveAt(index);
                 Destroy(player.gameObject);
@@ -85,9 +114,9 @@ public class RoundController : MonoBehaviour
 
         Vector2 strongestPosition = Vector2.zero; // keep track of strongest position, help kill slow players. (Adds another to the average)
 
-        foreach (PlayerInput player in players) 
+        foreach (Transform player in players) 
         {
-            Vector2 lastGroundPos = player.GetComponent<PlayerMovement>().LastGroundedPosition;
+            Vector2 lastGroundPos = player.GetComponent<Player>().LastGroundedPosition;
             avgPosition += lastGroundPos;
 
             if(strongestPosition.y < lastGroundPos.y) 
@@ -100,10 +129,9 @@ public class RoundController : MonoBehaviour
         return avgPosition;
     }
 
-
     //PLAYER JOINS
     void OnPlayerJoined(PlayerInput player)
     {
-        players.Add(player);
+        players.Add(player.transform);
     }
 }

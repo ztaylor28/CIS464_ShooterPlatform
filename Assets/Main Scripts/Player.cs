@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMovement : MonoBehaviour
+public class Player : MonoBehaviour
 {
     [SerializeField] float walkSpeed = 10f;
     [SerializeField] float runSpeed = 30f;
     [SerializeField] float jumpHeight = 5f;
+    [SerializeField] float knockbackDragStrength = 3;
+
     [SerializeField] //float rollDistance = 544f;
     Vector2 moveInput, aimInput;
     int runInput;
@@ -15,12 +17,14 @@ public class PlayerMovement : MonoBehaviour
     Animator myAnimator;
     CapsuleCollider2D myBodyCollider;
     BoxCollider2D myFeetCollider;
+    Transform groundCheck;
     SpriteRenderer spriteRender;
     PlayerInput playerInput;
     Transform aimArm;
+
     private Transform heldItem = null;
 
-    bool isRunning, isRolling, isJumping, isFiring, jumped;
+    bool isRunning, isRolling, isJumping, isFiring, jumped, isStunned;
     private float lastJumped = 0; //time until last jumped.
     private Vector2 lastGroundedPosition = Vector2.zero; //will be used when calculating average position for camera.
     private float lastGroundedTime = 0;
@@ -36,13 +40,13 @@ public class PlayerMovement : MonoBehaviour
         spriteRender = GetComponent<SpriteRenderer>();
         playerInput = GetComponent<PlayerInput>();
         aimArm = transform.Find("AimArm");
+        groundCheck = transform.Find("GroundCheck");
     }
 
     void Update()
     {
         //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
-        UpdateSpeed(); //Handles the stopping of the Player instantly. Allows tight controls.
     }
 
     private void FixedUpdate() 
@@ -64,7 +68,7 @@ public class PlayerMovement : MonoBehaviour
 
             if (colliders.Length < 1) //no items nearby
                 return;
-
+            
             //Find the closest pickup to the player.
             Transform closestPickUp = null;
             foreach (Collider2D collider in colliders)
@@ -140,42 +144,26 @@ public class PlayerMovement : MonoBehaviour
     {
         //Debug.Log(myRigidbody.velocity.x); //Activate this to check the characters Speed.
 
-        PlayerWalking(); //Function handles the walk speed.
+        if(isRunning)
+            PlayerRunning(); //Function handles the run speed and animation
+        else
+            PlayerWalking(); //Function handles the walk speed.
+        
+
         PlayerRolling(); //Function handles the hit box for rolling and animation.
-        PlayerRunning(); //Function handles the run speed and animation
         PlayerJumping();
         PlayerFiring();
     }
 
-    void UpdateSpeed()
-    {
-        if(moveInput.x == 0)
-        {
-            myRigidbody.velocity = new Vector2 (0, myRigidbody.velocity.y); //This code instantly stops the player's X velocity. THIS IMPLEMENTATION MAY NEED TO CHANGE WHEN KNOCKBACK GETS IMPLEMENTED
-        }
-    }
-
     void PlayerWalking()
     {
-        if(Mathf.Abs(myRigidbody.velocity.x) <= Mathf.Abs(walkSpeed))
-        {
-            myRigidbody.AddForce(moveInput * walkSpeed * walkSpeed);
-        }
+        myAnimator.SetBool("isRunning", false);
+        ChangeVelocity(new Vector2(moveInput.x * walkSpeed, myRigidbody.velocity.y));
     }
     void PlayerRunning()
     {
-        if(isRunning)
-        {
-            if(Mathf.Abs(myRigidbody.velocity.x) <= Mathf.Abs(runSpeed))
-            {
-                myRigidbody.AddForce(moveInput * runSpeed);
-            }
-            myAnimator.SetBool("isRunning", true);
-        }
-        else if (!isRunning)
-        {
-            myAnimator.SetBool("isRunning", false);
-        }
+        myAnimator.SetBool("isRunning", true);
+        ChangeVelocity(new Vector2(moveInput.x * runSpeed, myRigidbody.velocity.y));
     }
 
     void PlayerRolling()
@@ -201,8 +189,12 @@ public class PlayerMovement : MonoBehaviour
     bool CanJump() //can the player jump...?
     {
         bool grounded = myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
+        //ContactFilter2D cf = new ContactFilter2D();
+        //cf.SetLayerMask(LayerMask.GetMask("Ground"));
+        //bool grounded = Physics2D.OverlapBox(groundCheck.position, new Vector2(0.1f, 0.1f), 0f, cf, new Collider2D[1]) == 1;
 
-        if(grounded) //player is currently grounded and did NOT jump; update last position and last time.
+
+        if(grounded && myRigidbody.velocity.y < 0.01) //player is currently grounded and did NOT jump; update last position and last time.
         {
             if(Time.time - lastJumped > 0.1) //so we won't disable a jump that just occurred.
             {
@@ -223,15 +215,16 @@ public class PlayerMovement : MonoBehaviour
     {
         if(CanJump() && isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
         {
-            myRigidbody.AddForce(new Vector2(1f,jumpHeight), ForceMode2D.Impulse);
+            ChangeVelocity(new Vector2(myRigidbody.velocity.x, 0f)); //Reset jump velocity to zero, so coyote jump and have the same jump power as normal.
+            myRigidbody.AddForce(new Vector2(1f,jumpHeight * myRigidbody.mass), ForceMode2D.Impulse);
             jumped = true;
             lastJumped = Time.time;
         }
         else if (!isJumping) //If player is not holding jump key
         {
-            if(Mathf.Sign(myRigidbody.velocity.y) == 1f) //If the player has upward momentum
+            if(Mathf.Sign(myRigidbody.velocity.y) > 0) //If the player has upward momentum
             {
-                myRigidbody.velocity = new Vector2 (myRigidbody.velocity.x, 0f); //Make the momentum negative. THIS IMPLEMENTATION MAY NEED TO CHANGE WHEN KNOCKBACK GETS IMPLEMENTED
+                ChangeVelocity(new Vector2(myRigidbody.velocity.x, 0f));
             }
         }
     }
@@ -278,14 +271,48 @@ public class PlayerMovement : MonoBehaviour
         transform.localScale = new Vector2 (sign * Mathf.Abs(transform.localScale.x), transform.localScale.y);
     }
 
+    public void ChangeVelocity(Vector2 vector) //This is where the PLAYER script changes the velocity. Uses isStunned to verify if velocity should update or not (means player is being knockbacked.)
+    {
+        if(!isStunned)
+        {
+            myRigidbody.velocity = vector;
+        }
+    }
+
     public void Knockback(Vector2 vector) //knockback the player.
     {
+        
+        Debug.Log(vector);
+
+        if(!isStunned) //Player is not stunned already. Reset velocity to make initial impact stronger.
+        {
+            myRigidbody.velocity = Vector2.zero; //Resets velocity, so knockback can actually feel impactful.
+        }
         myRigidbody.AddForce(vector, ForceMode2D.Impulse);
+
+        if(!isStunned) //enable stun
+        {
+            StartCoroutine(KnockbackDrag());
+        }
 
         if (playerInput.currentControlScheme == "Gamepad")
         {
             StartCoroutine(RumbleController()); //Uses a coroutine as we want rumble to stop after a while
         }
+    }
+
+    IEnumerator KnockbackDrag()
+    {    
+        isStunned = true;
+        yield return new WaitForSeconds(0.1f); //Wait a bit. This is so weapons such as Assualt Rifle can still "stun" despite it weak knockback.
+
+                                                 //is player trying to resist?
+        while(Mathf.Abs(myRigidbody.velocity.x) > (moveInput.magnitude > 0.01 ? runSpeed : walkSpeed/2) || Mathf.Abs(myRigidbody.velocity.y) > jumpHeight)
+        {
+            //myRigidbody.velocity += new Vector2 (-Mathf.Sign(myRigidbody.velocity.x) * knockbackDragStrength/100, -Mathf.Sign(myRigidbody.velocity.y) * knockbackDragStrength/100);
+            yield return new WaitForSeconds(0);
+        }
+        isStunned = false;
     }
 
     IEnumerator RumbleController()

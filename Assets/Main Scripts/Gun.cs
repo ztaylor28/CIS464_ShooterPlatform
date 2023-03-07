@@ -8,6 +8,7 @@ public class Gun : PickUp
     [SerializeField] float shotSpeed = 1;
     [SerializeField] float shotDecay = 0; //Randomized shot speed offset. Can affect shotspeed
     [SerializeField] float recoil = 0; //recoil of the gun (knockback shooter)
+    [SerializeField] float knockbackMultiplier = 0;
     [SerializeField] float numBullets = 1;
     [SerializeField] float spread = 0; //The angle for multishot, which is set.
     [SerializeField] float aimDecay = 0; //Randomized angle. Can affect spread.
@@ -40,9 +41,9 @@ public class Gun : PickUp
 
             for(int i = 0; i < numBullets; i++)
             {
-                GameObject currentBullet = Instantiate(bullet); //spawn bullet
-                currentBullet.GetComponent<Bullet>().Shooter = player.gameObject; //TODO: We can also have currentBullet be a type "Bullet", and have the bullet script handle everything below.
-                
+                Bullet currentBullet = Instantiate(bullet).transform.GetComponent<Bullet>(); //spawn bullet
+                currentBullet.Shooter = player.gameObject; //TODO: we can have the bullet script handle everything below.
+                currentBullet.KnockbackMultiplier = knockbackMultiplier;
 
                 Vector2 aimVector = barrel.transform.TransformDirection(Vector2.right); //get the local vectorspace
                 currentBullet.transform.right = aimVector;
@@ -58,17 +59,19 @@ public class Gun : PickUp
 
             //Apply recoil
             if (recoil > 0)
-                player.GetComponent<PlayerMovement>().Knockback(-barrel.TransformDirection(Vector2.right) * recoil);
+                player.GetComponent<Player>().Knockback(-barrel.TransformDirection(Vector2.right) * recoil);
         }
     }
 
-    IEnumerator ApplyVelocityDelay(GameObject bullet)
+    IEnumerator ApplyVelocityDelay(Bullet bullet)
     {
+        bullet.StartingKnockback = bullet.transform.right * (shotSpeed - Random.Range(-shotDecay, shotDecay));
+
         // Wait for a short delay
         yield return new WaitForSeconds(delayTime);
 
-        if(bullet)
-            bullet.GetComponent<Rigidbody2D>().velocity = bullet.transform.right * (shotSpeed - Random.Range(-shotDecay, shotDecay));
+        bullet.GetComponent<Rigidbody2D>().velocity = bullet.StartingKnockback;
+        bullet.Ready = true;
     }
 
     public bool canShoot() //Check if the gun is inside of a Ground block. If so, do not shoot.

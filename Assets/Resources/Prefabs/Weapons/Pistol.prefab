@@ -185,6 +185,7 @@ MonoBehaviour:
   shotSpeed: 25
   shotDecay: 0
   recoil: 0
+  knockbackMultiplier: 1
   numBullets: 1
   spread: 0
   aimDecay: 0
