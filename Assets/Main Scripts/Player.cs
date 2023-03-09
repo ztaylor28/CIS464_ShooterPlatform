@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
@@ -8,7 +9,6 @@ public class Player : MonoBehaviour
     [SerializeField] float walkSpeed = 10f;
     [SerializeField] float runSpeed = 30f;
     [SerializeField] float jumpHeight = 5f;
-    [SerializeField] float knockbackDragStrength = 3;
 
     [SerializeField] //float rollDistance = 544f;
     Vector2 moveInput, aimInput;
@@ -21,6 +21,7 @@ public class Player : MonoBehaviour
     SpriteRenderer spriteRender;
     PlayerInput playerInput;
     Transform aimArm;
+    Transform hand;
 
     private Transform heldItem = null;
 
@@ -36,22 +37,30 @@ public class Player : MonoBehaviour
         myRigidbody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
         myBodyCollider = GetComponent<CapsuleCollider2D>();
-        myFeetCollider = GetComponent<BoxCollider2D>();
+        //myFeetCollider = GetComponent<BoxCollider2D>();
         spriteRender = GetComponent<SpriteRenderer>();
         playerInput = GetComponent<PlayerInput>();
         aimArm = transform.Find("AimArm");
-        groundCheck = transform.Find("GroundCheck");
+        hand = aimArm.Find("Hold");
+        //groundCheck = transform.Find("GroundCheck");
+        myFeetCollider = transform.Find("GroundCheck").GetComponent<BoxCollider2D>();
     }
 
     void Update()
     {
+        Debug.Log(hand.position);
         //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
     }
 
-    private void FixedUpdate() 
+    void FixedUpdate() 
     {
         UpdateSpeedFixed(); //This will handle all speed and forces.
+    }
+
+    void OnEnable() //SetActive(true)
+    {
+        isStunned = false; //Just in case player got stunned when they were eliminated.
     }
 
     void OnMove(InputValue value)
@@ -89,7 +98,14 @@ public class Player : MonoBehaviour
             //snap to player
             closestPickUp.rotation = aimArm.Find("Hold").rotation;
             closestPickUp.position = aimArm.Find("Hold").position + (closestPickUp.position - closestPickUp.Find("Grip").transform.position);
-            closestPickUp.parent = aimArm.Find("Hold");
+            //closestPickUp.parent = aimArm.Find("Hold");
+
+            //We cannot change the parent to the arm anymore due to Players not being able to destroy on load anymore. (This results in the gun to also destroy on load lol)
+            ConstraintSource source = new ConstraintSource();
+            source.sourceTransform = hand;
+            source.weight = 1;
+            closestPickUp.GetComponent<ParentConstraint>().AddSource(source);
+            closestPickUp.GetComponent<ParentConstraint>().constraintActive = true;
 
             heldItem = closestPickUp;
         }
@@ -97,7 +113,9 @@ public class Player : MonoBehaviour
         {
             heldItem.GetComponent<BoxCollider2D>().enabled = true;
             heldItem.GetComponent<Rigidbody2D>().isKinematic = false;
-            heldItem.parent = null; //back to scene
+            //heldItem.parent = null; //back to scene (Not needed anymore due to using Parent Constraint now, but it was pretty cool to know!)
+
+            heldItem.GetComponent<ParentConstraint>().RemoveSource(0); //remove the source.
 
             heldItem.GetComponent<Rigidbody2D>().AddForce(-aimArm.up * 500);
 
@@ -256,19 +274,12 @@ public class Player : MonoBehaviour
         myAnimator.SetBool("isJumping", playerHasVerticalSpeed);
     }
 
-    void FlipSprite() //Function Flips the sprite around
-    {
-        bool playerHasHorizontalSpeed =  Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
-
-        if(playerHasHorizontalSpeed)
-        {
-            transform.localScale = new Vector2 (Mathf.Sign(myRigidbody.velocity.x), 1f);
-        }
-    }
-
     void FlipSprite(int sign)
     {
-        transform.localScale = new Vector2 (sign * Mathf.Abs(transform.localScale.x), transform.localScale.y);
+        Tools.FlipSprite(sign, transform);
+
+        if (heldItem) //Also flip the held item. This is needed as the gun is not parented to the player anymore.
+            Tools.FlipSprite(sign, heldItem);
     }
 
     public void ChangeVelocity(Vector2 vector) //This is where the PLAYER script changes the velocity. Uses isStunned to verify if velocity should update or not (means player is being knockbacked.)

@@ -13,4 +13,9 @@ public static class Tools
 
         return children;
     }
+
+    public static void FlipSprite(int sign, Transform tran)
+    {
+        tran.localScale = new Vector2 (sign * Mathf.Abs(tran.localScale.x), tran.localScale.y);
+    }
 }

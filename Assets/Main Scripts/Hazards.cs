@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class Hazards : MonoBehaviour
 {
+    [SerializeField] GameData gameData;
+
     BoxCollider2D myKillCollider;
-    [SerializeField] RoundController roundController; //the door to open.
     [SerializeField] float hazardSpeed; //the door to open.
     [SerializeField] float sawRotateSpeed; //the door to open.
     [SerializeField] Transform targetHazardPosition;
@@ -22,42 +23,36 @@ public class Hazards : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        VerifyElimination();
         HazardMovement();
         SpinDemSaws();
     }
+
+    /* Actually, we can just use the collision "onEnter" event. Should be more performance friendly too.
     void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
     {
-        bool killed = myKillCollider.IsTouchingLayers(LayerMask.GetMask("Player"));
+        List<Collider2D> playersOuchies = new List<Collider2D>();
+        ContactFilter2D cf = new ContactFilter2D();
+        cf.SetLayerMask(LayerMask.GetMask("Player"));
 
-        List<Transform> toRemove = new List<Transform>();
+        myKillCollider.OverlapCollider(cf, playersOuchies);
 
         int index = 0;
-        while(index < roundController.players.Count)
+        while(index < playersOuchies.Count)
         {
-            Transform player = roundController.players[index];
-            Debug.Log(killed);
-            if(killed)
-            {
-                Debug.Log(killed);
-                roundController.players.RemoveAt(index);
-                Destroy(player.gameObject);
-            }
-           else
-                index++;
+            Transform player = playersOuchies[index].GetComponent<Transform>(); //If there is a player here, they already touched it.
+            gameData.EliminatePlayer(player);
+            index++;
         }
     }
+    */
 
     void HazardMovement()
     {
         hazardPace = hazardSpeed * Time.deltaTime;
-        if(roundController.inProgress)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, targetHazardPosition.position, hazardPace);
-        }
+        transform.position = Vector3.MoveTowards(transform.position, targetHazardPosition.position, hazardPace);
     }
 
-    void SpinDemSaws()
+    void SpinDemSaws() //lol
     {
         sawPace = sawRotateSpeed * Time.deltaTime;
         Transform[] saws = Tools.GetChildren(transform);
@@ -65,6 +60,14 @@ public class Hazards : MonoBehaviour
         foreach(Transform saw in saws)
         {
             saw.Rotate(new Vector3( 0, 0, sawPace));
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D collision) //Hit the killzone.
+    {
+        if(collision.gameObject.tag == "Player") //It's a player!
+        {
+            gameData.EliminatePlayer(collision.transform);
         }
     }
 }

@@ -2,14 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class RoundController : MonoBehaviour
 {
     [SerializeField] GameObject door; //the door to open.
     [SerializeField] GameObject readyZone; //the door to open.
+    [SerializeField] GameObject buzzSaws;
+    [SerializeField] GameData gameData;
     private BoxCollider2D readyCollider;
-
-    public bool inProgress = false; //Determine if a round is happening.
+    private PlayerInputManager playerManager;
     
     private Camera cam;
 
@@ -19,8 +21,9 @@ public class RoundController : MonoBehaviour
     private float lerpCurrentTime;
 
     private float scrollSpeed = 5;
+    private bool inProgress = false;
     
-    public List<Transform> players = new List<Transform>();
+    private List<Transform> players;
     
     // Start is called before the first frame update
     void Start()
@@ -29,6 +32,21 @@ public class RoundController : MonoBehaviour
         lerpEndPos = cam.transform.position;
 
         readyCollider = readyZone.GetComponent<BoxCollider2D>();
+        playerManager = GetComponent<PlayerInputManager>();
+
+        players = gameData.RoundPlayers;
+        players.Clear(); //clear the round.
+
+        if(gameData.GamePlayers.Count > 0) // players are already in the game. Load them.
+        {
+            foreach(Transform player in gameData.GamePlayers)
+            {
+                player.gameObject.SetActive(true); //playable again.
+                player.transform.position = new Vector2(0,0);
+                players.Add(player);
+            }
+        }
+        playerManager.EnableJoining(); // Players can join after preexisting players are loaded in.
     }
 
     // Update is called once per frame
@@ -41,7 +59,8 @@ public class RoundController : MonoBehaviour
         else if(inProgress) //round is happening.
         {
             UpdateCamera();
-            //VerifyElimination();
+            VerifyElimination();
+            VerifyWinner();
         }
     }
 
@@ -83,14 +102,16 @@ public class RoundController : MonoBehaviour
 
         readyCollider.OverlapCollider(cf, playersReady);
 
-        if(playersReady.Count == players.Count * 2) //It is palyers.Count * 2 because of the feet collider also count as a player lol
+        if(playersReady.Count == players.Count)
         {
-             door.GetComponent<Door>().OpenDoors();
-             inProgress = true;
+            playerManager.DisableJoining(); //Players cannot join anymore!
+            door.GetComponent<Door>().OpenDoors();
+            buzzSaws.GetComponent<Hazards>().enabled = true; //Start the saw!
+            inProgress = true;
         }
     }
 
-    /*void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
+    void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
     {
         List<Transform> toRemove = new List<Transform>();
 
@@ -100,13 +121,29 @@ public class RoundController : MonoBehaviour
             Transform player = players[index];
             if(cam.WorldToScreenPoint(player.position + new Vector3(0, player.GetComponent<CapsuleCollider2D>().size.y/2)).y < 0) //position from the top of the player collision
             {
-                players.RemoveAt(index);
-                Destroy(player.gameObject);
+                gameData.EliminatePlayer(player);
             }
             else
                 index++;
         }
-    }*/
+    }
+
+    void VerifyWinner()
+    {
+        if(gameData.GamePlayers.Count == 1) //Playing by themselves and they died, just reset.
+        {
+            if(players.Count == 0)
+            {
+                inProgress = false; // round is not in progress anymore.
+                SceneManager.LoadScene("Tower"); //reload the scene.
+            }
+        }
+        else if(players.Count <= 1) //Normal game and only one player (or zero if they all died.)
+        {
+            inProgress = false; // round is not in progress anymore.
+            SceneManager.LoadScene("Winner");
+        }
+    }
 
     Vector2 GetAveragePosition() //Get the average position of all players.
     {
@@ -132,6 +169,11 @@ public class RoundController : MonoBehaviour
     //PLAYER JOINS
     void OnPlayerJoined(PlayerInput player)
     {
-        players.Add(player.transform);
+        if(!gameData.GamePlayers.Contains(player.transform)) //This is a completely new player. (For some reason, onPlayJoined get called upon new scene. But we can do this check to prevent any conflicts.)
+        {
+            gameData.CreatePlayer(player.transform);
+            DontDestroyOnLoad(player.gameObject); //We do not want players to get destroyed. Makes resetting scene much easier!
+            gameData.RoundPlayers.Add(player.transform); //add player to the round.
+        }
     }
 }
