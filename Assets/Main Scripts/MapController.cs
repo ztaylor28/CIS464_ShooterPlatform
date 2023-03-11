@@ -49,7 +49,7 @@ public class MapController : MonoBehaviour
                     }
                 }
 
-                Debug.Log(totalMatches/validExitTiles.Count);
+                //Debug.Log(totalMatches/validExitTiles.Count);
                 if(totalMatches > 0 && totalMatches/validExitTiles.Count >= validThreshold) //A majority of the tiles were matched, it is fair game!
                 {
                     LoadLevel(posLevel);
@@ -75,7 +75,7 @@ public class MapController : MonoBehaviour
             exitTiles[j] = -1; //fill all array as "empty"
 
         //First, populate the array with information about the first row.
-        Debug.Log("xMin: " + bounds.xMin + " xMax: " + bounds.yMax);
+        //Debug.Log("xMin: " + bounds.xMin + " xMax: " + bounds.yMax);
         for(int i = 0; i < exitTiles.Length; i++) //At the final row of the level, find all valid blocks.
         {
             foreach(Tilemap tileMap in tileMaps)

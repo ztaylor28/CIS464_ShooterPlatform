@@ -25,7 +25,7 @@ public class Player : MonoBehaviour
 
     private Transform heldItem = null;
 
-    bool isRunning, isRolling, isJumping, isFiring, jumped, isStunned;
+    bool isRunning, isRolling, isJumping, isFiring, jumped, isStunned, isWalking;
     private float lastJumped = 0; //time until last jumped.
     private Vector2 lastGroundedPosition = Vector2.zero; //will be used when calculating average position for camera.
     private float lastGroundedTime = 0;
@@ -179,8 +179,11 @@ public class Player : MonoBehaviour
     }
     void PlayerRunning()
     {
-        myAnimator.SetBool("isRunning", true);
         ChangeVelocity(new Vector2(moveInput.x * runSpeed, myRigidbody.velocity.y));
+        if(!isRolling)
+        {
+            myAnimator.SetBool("isRunning", true);
+        }
     }
 
     void PlayerRolling()
@@ -209,7 +212,14 @@ public class Player : MonoBehaviour
         //ContactFilter2D cf = new ContactFilter2D();
         //cf.SetLayerMask(LayerMask.GetMask("Ground"));
         //bool grounded = Physics2D.OverlapBox(groundCheck.position, new Vector2(0.1f, 0.1f), 0f, cf, new Collider2D[1]) == 1;
-
+        if(!grounded)
+        {
+            myAnimator.SetBool("isJumping", true);
+        }
+        else
+        {
+            myAnimator.SetBool("isJumping", false);
+        }
 
         if(grounded && myRigidbody.velocity.y < 0.01) //player is currently grounded and did NOT jump; update last position and last time.
         {
@@ -264,13 +274,14 @@ public class Player : MonoBehaviour
     void UpdateAnimation()
     {
         bool playerHasBothSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon && Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
-        myAnimator.SetBool("isJumping", playerHasBothSpeed);
+        //myAnimator.SetBool("isJumping", playerHasBothSpeed);
 
-        bool playerHasHorizontalSpeed = (Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon) && (myBodyCollider.size.y > 1);
+        bool playerHasHorizontalSpeed = (Mathf.Abs(myRigidbody.velocity.x) > 0.002) && (myBodyCollider.size.y > 1);
         myAnimator.SetBool("isWalking", playerHasHorizontalSpeed);
 
         bool playerHasVerticalSpeed = Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
-        myAnimator.SetBool("isJumping", playerHasVerticalSpeed);
+        //myAnimator.SetBool("isJumping", playerHasVerticalSpeed);
+        //Debug.Log(myRigidbody.velocity.x);
     }
 
     void FlipSprite(int sign)
