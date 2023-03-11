@@ -48,7 +48,6 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(hand.position);
         //FlipSprite(); //Function handles which way the sprite is looking.
         UpdateAnimation();
     }
