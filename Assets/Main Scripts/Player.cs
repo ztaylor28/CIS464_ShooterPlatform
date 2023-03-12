@@ -358,4 +358,9 @@ public class Player : MonoBehaviour
     {
         GameObject.Find("Canvas").transform.Find("Console").GetComponent<DevConsole>().Toggle(playerInput); //Toggle the dev console, sending the playerinput so it can disable it.
     }
+
+    void OnPause()
+    {
+        GameObject.Find("Canvas").transform.Find("PauseMenu").GetComponent<PauseControl>().ChangePause(playerInput); //Toggle the pause menu, sending the playerinput so it can disable it.
+    }
 }
