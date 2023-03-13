@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Falling : MonoBehaviour
+public class FallingPlatform : MonoBehaviour
 {
     private float fallDelay = 1f;
     private float destroyDelay = 2f;
