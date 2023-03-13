@@ -5,16 +5,14 @@ using UnityEngine.EventSystems;
 
 public class DevConsole : MonoBehaviour
 {
-
+    [SerializeField] WeaponData weaponData;
     private TMP_InputField console;
-    private GameObject[] weapons;
 
     public void Start()
     {
         gameObject.SetActive(false); //hide UI
 
         console = transform.GetComponent<TMP_InputField>(); //get the TMP component
-        weapons = Resources.LoadAll<GameObject>("Prefabs/Weapons"); // Put all weapons in GameObject. Will loop through it based on user input
     }
 
     public void DisconnectEvents(PlayerInput playerInput)
@@ -36,7 +34,7 @@ public class DevConsole : MonoBehaviour
         playerInput.SwitchCurrentActionMap("UI"); //so players won't move.
 
         console.onEndEdit.AddListener((x) => {
-            foreach(var obj in weapons)
+            foreach(var obj in weaponData.Weapons)
             {
                 if (obj.name.ToLower().Contains(x.ToLower()))
                 {

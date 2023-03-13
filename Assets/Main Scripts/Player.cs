@@ -25,21 +25,46 @@ public class Player : MonoBehaviour
 
     private Transform heldItem = null;
 
-    bool isRunning, isRolling, isJumping, isFiring, jumped, isStunned, isWalking;
-    private float lastJumped = 0; //time until last jumped.
+    Dictionary<string, bool> booleans = new Dictionary<string, bool>(){
+        {"isRunning", false},
+        {"isRolling", false},
+        {"isJumping", false},
+        {"isFiring", false},
+        {"jumped", false},
+        {"isStunned", false},
+        {"rollHeld", false}
+    };
+
+    Dictionary<string, bool> defaultBooleans = new Dictionary<string, bool>();
+
+    private float lastJump = 0; //time until last jumped.
     private Vector2 lastGroundedPosition = Vector2.zero; //will be used when calculating average position for camera.
     private float lastGroundedTime = 0;
 
-    public Vector2 LastGroundedPosition { get => lastGroundedPosition; set => lastGroundedPosition = value; }
+    private string controlScheme;
+    private Gamepad device;
+
+     public Vector2 LastGroundedPosition { get => lastGroundedPosition; set => lastGroundedPosition = value; }
+    public string ControlScheme { get => controlScheme; set => controlScheme = value; }
+    public Gamepad Device { get => device; set => device = value; }
 
     void Start()
     {
+        Tools.CloneDictionary(booleans, defaultBooleans); //keep track of defautl booleans so we can easily reset them.
+
         myRigidbody = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
         myBodyCollider = GetComponent<CapsuleCollider2D>();
         //myFeetCollider = GetComponent<BoxCollider2D>();
         spriteRender = GetComponent<SpriteRenderer>();
         playerInput = GetComponent<PlayerInput>();
+
+        controlScheme = playerInput.currentControlScheme; //Keep track of control scheme, so Unity won't overwrite it.
+        if(controlScheme == "Gamepad")
+        {
+            device = (Gamepad) playerInput.devices[0];
+        }
+
         aimArm = transform.Find("AimArm");
         hand = aimArm.Find("Hold");
         //groundCheck = transform.Find("GroundCheck");
@@ -59,7 +84,19 @@ public class Player : MonoBehaviour
 
     void OnEnable() //SetActive(true)
     {
-        isStunned = false; //Just in case player got stunned when they were eliminated.
+        
+    }
+
+    void OnDisable() //Reset all of the booleans and others, so funky stuff won't occur when player respawn
+    {
+        Tools.CloneDictionary(defaultBooleans, booleans);
+        
+        if (playerInput.currentControlScheme == "Gamepad") //kill rumble.
+        {
+            device.SetMotorSpeeds(0f, 0f);
+        }
+
+        moveInput = Vector2.zero;
     }
 
     void OnMove(InputValue value)
@@ -161,7 +198,7 @@ public class Player : MonoBehaviour
     {
         //Debug.Log(myRigidbody.velocity.x); //Activate this to check the characters Speed.
 
-        if(isRunning)
+        if(booleans["isRunning"])
             PlayerRunning(); //Function handles the run speed and animation
         else
             PlayerWalking(); //Function handles the walk speed.
@@ -180,7 +217,7 @@ public class Player : MonoBehaviour
     void PlayerRunning()
     {
         ChangeVelocity(new Vector2(moveInput.x * runSpeed, myRigidbody.velocity.y));
-        if(!isRolling)
+        if(!booleans["isRolling"])
         {
             myAnimator.SetBool("isRunning", true);
         }
@@ -188,22 +225,29 @@ public class Player : MonoBehaviour
 
     void PlayerRolling()
     {
-        if(isRolling) //If player is holding roll key then change to half hitbox size.
+        if(booleans["rollHeld"]) //If player is holding roll key then change to half hitbox size.
         {
+            booleans["isRolling"] = true; //player is now rolling.
             myBodyCollider.size = new Vector2 (0.7141247f, 0.6f); 
             myBodyCollider.offset = new Vector2 (-0.004566193f, -0.4f);
             myAnimator.SetBool("isRolling", true);
         }
-        else if (!isRolling) //If player is not holding roll key change to full hitbox size.
+        else if (!booleans["rollHeld"] && booleans["isRolling"]) //If player is not holding roll key (and rolling) change to full hitbox size.
         {
-            myAnimator.SetBool("isRolling", false);
-            myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
-            myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
+            RaycastHit2D hit = Physics2D.Raycast((Vector2) transform.position + myBodyCollider.offset, transform.up, 0.4f, LayerMask.GetMask("Ground"));
+            
+            if(!hit) //No hit, player is not under a block.
+            {
+                booleans["isRolling"] = false;
+                myAnimator.SetBool("isRolling", false);
+                myBodyCollider.size = new Vector2 (0.7141247f, 1.482965f);
+                myBodyCollider.offset = new Vector2 (-0.004566193f, -0.06117797f);
+            }
         }
 
-        aimArm.GetComponent<SpriteRenderer>().enabled = !isRolling;
+        aimArm.GetComponent<SpriteRenderer>().enabled = !booleans["isRolling"];
         if(heldItem)
-            heldItem.GetComponent<SpriteRenderer>().enabled = !isRolling;
+            heldItem.GetComponent<SpriteRenderer>().enabled = !booleans["isRolling"];
     }
 
     bool CanJump() //can the player jump...?
@@ -223,33 +267,33 @@ public class Player : MonoBehaviour
 
         if(grounded && myRigidbody.velocity.y < 0.01) //player is currently grounded and did NOT jump; update last position and last time.
         {
-            if(Time.time - lastJumped > 0.1) //so we won't disable a jump that just occurred.
+            if(Time.time - lastJump > 0.1) //so we won't disable a jump that just occurred.
             {
                 LastGroundedPosition = transform.position;
                 lastGroundedTime = Time.time;
-                jumped = false; //player is not jumping.
+                booleans["jumped"] = false; //player is not jumping.
                 return true;
             }
             return false;
         }
         else
         {
-            return !jumped && (Time.time - lastGroundedTime) < 0.25; //If the player didn't jump and grounded, they may still jump because of lastGroundedTime.
+            return !booleans["jumped"] && (Time.time - lastGroundedTime) < 0.25; //If the player didn't jump and grounded, they may still jump because of lastGroundedTime.
         }
     }
 
     void PlayerJumping()
     {
-        if(CanJump() && isJumping) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
+        if(CanJump() && booleans["isJumping"]) //If player is holding jump key and his feet hitbox is on the ground. Then allow him to jump.
         {
             ChangeVelocity(new Vector2(myRigidbody.velocity.x, 0f)); //Reset jump velocity to zero, so coyote jump and have the same jump power as normal.
             myRigidbody.AddForce(new Vector2(1f,jumpHeight * myRigidbody.mass), ForceMode2D.Impulse);
-            jumped = true;
-            lastJumped = Time.time;
+            booleans["jumped"] = true;
+            lastJump = Time.time;
         }
-        else if (!isJumping) //If player is not holding jump key
+        else if (!booleans["isJumping"]) //If player is not holding jump key
         {
-            if(Mathf.Sign(myRigidbody.velocity.y) > 0) //If the player has upward momentum
+            if(Mathf.Sign(myRigidbody.velocity.y) > 0) //If the player has upward momentum, terminate it. (short hop)
             {
                 ChangeVelocity(new Vector2(myRigidbody.velocity.x, 0f));
             }
@@ -257,21 +301,21 @@ public class Player : MonoBehaviour
     }
     void PlayerFiring()
     {
-        if(!heldItem || isRolling) //not holding anything or rolling
+        if(!heldItem || booleans["isRolling"]) //not holding anything or rolling
             return;
 
-        if(isFiring)
+        if(booleans["isFiring"])
         {
             PickUp pickUp = heldItem.GetComponent<PickUp>();
             pickUp.Fire(transform);
         }
-        else if (!isFiring)
+        else if (!booleans["isFiring"])
         {
             //Placeholder
         }
     }
 
-    void UpdateAnimation()
+    void UpdateAnimation() //TODO: This should handle all of the animations (rather than it being scattered in different functions everywhere. Worry about that for Project 2.)
     {
         bool playerHasBothSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon && Mathf.Abs(myRigidbody.velocity.y) > Mathf.Epsilon;
         //myAnimator.SetBool("isJumping", playerHasBothSpeed);
@@ -292,9 +336,9 @@ public class Player : MonoBehaviour
             Tools.FlipSprite(sign, heldItem);
     }
 
-    public void ChangeVelocity(Vector2 vector) //This is where the PLAYER script changes the velocity. Uses isStunned to verify if velocity should update or not (means player is being knockbacked.)
+    public void ChangeVelocity(Vector2 vector) //This is where the PLAYER script changes the velocity. Uses booleans["isStunned"] to verify if velocity should update or not (means player is being knockbacked.)
     {
-        if(!isStunned)
+        if(!booleans["isStunned"])
         {
             myRigidbody.velocity = vector;
         }
@@ -302,16 +346,13 @@ public class Player : MonoBehaviour
 
     public void Knockback(Vector2 vector) //knockback the player.
     {
-        
-        Debug.Log(vector);
-
-        if(!isStunned) //Player is not stunned already. Reset velocity to make initial impact stronger.
+        if(!booleans["isStunned"]) //Player is not stunned already. Reset velocity to make initial impact stronger.
         {
             myRigidbody.velocity = Vector2.zero; //Resets velocity, so knockback can actually feel impactful.
         }
         myRigidbody.AddForce(vector, ForceMode2D.Impulse);
 
-        if(!isStunned) //enable stun
+        if(!booleans["isStunned"]) //enable stun
         {
             StartCoroutine(KnockbackDrag());
         }
@@ -324,7 +365,7 @@ public class Player : MonoBehaviour
 
     IEnumerator KnockbackDrag()
     {    
-        isStunned = true;
+        booleans["isStunned"] = true;
         yield return new WaitForSeconds(0.1f); //Wait a bit. This is so weapons such as Assualt Rifle can still "stun" despite it weak knockback.
 
                                                  //is player trying to resist?
@@ -333,25 +374,46 @@ public class Player : MonoBehaviour
             //myRigidbody.velocity += new Vector2 (-Mathf.Sign(myRigidbody.velocity.x) * knockbackDragStrength/100, -Mathf.Sign(myRigidbody.velocity.y) * knockbackDragStrength/100);
             yield return new WaitForSeconds(0);
         }
-        isStunned = false;
+        booleans["isStunned"] = false;
     }
 
     IEnumerator RumbleController()
     {
-        Gamepad.current.SetMotorSpeeds(0.25f, 0.25f);
+        device.SetMotorSpeeds(0.25f, 0.25f);
          
         // Wait for a short delay
         yield return new WaitForSeconds(0.1f);
 
-        Gamepad.current.SetMotorSpeeds(0f, 0f); //stop rumble
+        device.SetMotorSpeeds(0f, 0f); //stop rumble
     }
     
     //HELD BUTTONS
-    void OnFire(InputValue value){isFiring = value.isPressed;}
+    void OnFire(InputValue value){booleans["isFiring"] = value.isPressed;}
 
-    void OnRoll(InputValue value){isRolling = value.isPressed;}
-    void OnJump(InputValue value){isJumping = value.isPressed;}
-    void OnRun(InputValue value){isRunning = value.isPressed;}
+    void OnRoll(InputValue value)
+    {
+        booleans["rollHeld"] = value.isPressed;
+    }
+    void OnJump(InputValue value){booleans["isJumping"] = value.isPressed;}
+    void OnRun(InputValue value){booleans["isRunning"] = value.isPressed;}
+
+
+/* Possible way to fix PlayerInputMananger; just disable everything except playerInput.
+    public void Active(bool isActive)
+    {
+        foreach(Behaviour comp in GetComponents<Behaviour>())
+        {
+            if(comp != playerInput)
+            {
+                comp.enabled = isActive;
+            }
+            else
+            {
+   
+            }
+        }
+    }
+    */
 
     //DevConsole
     void OnDevConsole()

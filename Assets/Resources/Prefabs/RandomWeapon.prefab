@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 48108124823880382}
   - component: {fileID: 48108124823880369}
+  - component: {fileID: -7224820163081701951}
   m_Layer: 7
   m_Name: RandomWeapon
   m_TagString: Untagged
@@ -84,3 +85,16 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &-7224820163081701951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48108124823880368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69aa1b488a6437b438291f0a7d48ffe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponData: {fileID: 11400000, guid: dcef763fdda498b4194c2ad2a75f0348, type: 2}

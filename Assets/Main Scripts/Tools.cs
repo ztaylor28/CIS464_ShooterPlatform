@@ -14,6 +14,16 @@ public static class Tools
         return children;
     }
 
+    public static void CloneDictionary<TKey, TValue>(Dictionary<TKey, TValue> src, Dictionary<TKey, TValue>  dest)
+    {
+        dest.Clear(); //clear at the dictionary
+        
+        foreach (var pair in src)
+        {
+            dest.Add(pair.Key, pair.Value);
+        }
+    }
+
     public static void FlipSprite(int sign, Transform tran)
     {
         tran.localScale = new Vector2 (sign * Mathf.Abs(tran.localScale.x), tran.localScale.y);

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-[CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/GameData", order = 1)]
+[CreateAssetMenu(fileName = "GameData", menuName = "ScriptableObjects/GameData", order = 1)]
 public class GameData : ScriptableObject //Consists of data relating to the main game.
 {
     [System.NonSerialized] List<Transform> gamePlayers = new List<Transform>(); //players who are in the game. Holds PLAYER DATA.
@@ -23,6 +24,6 @@ public class GameData : ScriptableObject //Consists of data relating to the main
     public void EliminatePlayer(Transform player)
     {
         roundPlayers.Remove(player);
-        player.gameObject.SetActive(false); // "destroy" the player.
+        player.gameObject.SetActive(false); //Disable everything in the player.
     }
 }

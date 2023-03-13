@@ -175,5 +175,17 @@ public class RoundController : MonoBehaviour
             DontDestroyOnLoad(player.gameObject); //We do not want players to get destroyed. Makes resetting scene much easier!
             gameData.RoundPlayers.Add(player.transform); //add player to the round.
         }
+        else //Already exist. Reset their control scheme in case Unity reset it.
+        { //TODO: I hate this bandaid solution. But if it works, it works.
+            Player playerScript = player.GetComponent<Player>();
+            if (playerScript.ControlScheme == "Gamepad")
+            {
+                player.SwitchCurrentControlScheme(playerScript.ControlScheme, playerScript.Device);
+            }
+            else //keyboard and mouse
+            {
+                player.SwitchCurrentControlScheme(playerScript.ControlScheme, Keyboard.current, Mouse.current);
+            }
+        }
     }
 }
