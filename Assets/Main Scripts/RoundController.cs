@@ -28,6 +28,8 @@ public class RoundController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        MusicPlayer.Instance.PlayMusic("Lobby");
+
         cam = Camera.main;
         lerpEndPos = cam.transform.position;
 
@@ -104,11 +106,17 @@ public class RoundController : MonoBehaviour
 
         if(playersReady.Count == players.Count)
         {
-            playerManager.DisableJoining(); //Players cannot join anymore!
-            door.GetComponent<Door>().OpenDoors();
-            buzzSaws.GetComponent<Hazards>().enabled = true; //Start the saw!
-            inProgress = true;
+            BeginRound();
         }
+    }
+
+    void BeginRound()
+    {
+        playerManager.DisableJoining(); //Players cannot join anymore!
+        MusicPlayer.Instance.PlayMusic("InProgress");
+        door.GetComponent<Door>().OpenDoors();
+        buzzSaws.GetComponent<Hazards>().enabled = true; //Start the saw!
+        inProgress = true;
     }
 
     void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)

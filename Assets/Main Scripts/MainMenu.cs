@@ -5,6 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    void Start()
+    {
+        MusicPlayer.Instance.PlayMusic("Intro");
+    }
+
     public void PlayGame()
     { 
         SceneManager.LoadScene("Tower");

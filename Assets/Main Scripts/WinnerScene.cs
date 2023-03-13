@@ -16,8 +16,6 @@ public class WinnerScene : MonoBehaviour //set up the logic needed for winner sc
     // Start is called before the first frame update
     void Start()
     {
-        audioSource =  GetComponent<AudioSource>();
-
         List<Transform> roundPlayers = gameData.RoundPlayers;
 
         if(roundPlayers.Count == 1)
@@ -25,6 +23,7 @@ public class WinnerScene : MonoBehaviour //set up the logic needed for winner sc
             Transform winner = roundPlayers[0];
 
             winner.position = spawn.position;
+            MusicPlayer.Instance.PlayMusic("Winner");
         }
         else //Oh... a tie. Awkward.
         {
@@ -32,7 +31,7 @@ public class WinnerScene : MonoBehaviour //set up the logic needed for winner sc
             audioSource.clip = noWinnerTheme;
             blackBackground.GetComponent<Renderer>().enabled = true;
             Destroy(confetti.gameObject);
+            MusicPlayer.Instance.PlayMusic("NoWinner");
         }
-        audioSource.Play(); //play the audio
     }
 }
