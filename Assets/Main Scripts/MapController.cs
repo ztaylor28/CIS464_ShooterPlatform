@@ -9,6 +9,7 @@ public class MapController : MonoBehaviour
 {
     [SerializeField] int maxLength; //How big should the tower be?
     [SerializeField] float validThreshold; //How big should the threshold be in allowing similar exit/entrance levels?
+    [SerializeField] Transform hazardGoal;
     private List<Transform> levels;
 
     private List<Transform> segments;
@@ -62,6 +63,13 @@ public class MapController : MonoBehaviour
                 break;
             }
         }
+
+        //Last level has a bunch of weapons.
+        Transform lastLevel = Instantiate(Resources.Load<Transform>("Prefabs/War"));
+        segments.Add(lastLevel);
+        lastLevel.position = new Vector2(0, 12 * (segments.Count));
+
+        hazardGoal.position = new Vector3(hazardGoal.position.x, lastLevel.position.y - 6, hazardGoal.position.z);
     }
 
     List<int> CalculateValidTiles(Tilemap[] tileMaps, bool isExit) //Calculate the valid tiles. Exit is the one the player is coming out of (previous level)

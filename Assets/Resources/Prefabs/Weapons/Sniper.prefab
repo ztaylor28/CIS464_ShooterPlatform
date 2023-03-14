@@ -17,7 +17,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573424, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_Name
-      value: Sniper Variant
+      value: Sniper
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573425, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_Sprite
@@ -102,6 +102,10 @@ PrefabInstance:
     - target: {fileID: 4154340245918373650, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.y
       value: -0.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 6676263930490856348, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
+      propertyPath: ammo
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6676263930490856348, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: recoil

@@ -13,6 +13,8 @@ public class Hazards : MonoBehaviour
 
     private GameObject myKillZone;
     private float hazardPace, sawPace;
+
+    private float totalTime;
     // Start is called before the first frame update
     void Start()
     {
@@ -48,6 +50,14 @@ public class Hazards : MonoBehaviour
 
     void HazardMovement()
     {
+        totalTime += Time.deltaTime;
+
+        if(totalTime > 5) // increase speed after 15 seconds
+        {
+            totalTime = 0;
+            hazardSpeed *= 1.1f; //go faster.
+        }
+
         hazardPace = hazardSpeed * Time.deltaTime;
         transform.position = Vector3.MoveTowards(transform.position, targetHazardPosition.position, hazardPace);
     }

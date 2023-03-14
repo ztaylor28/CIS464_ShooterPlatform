@@ -6,6 +6,7 @@ public class Gun : PickUp
 {
     [SerializeField] float cooldown = 1;
     [SerializeField] float shotSpeed = 1;
+    [SerializeField] float ammo = 1;
     [SerializeField] float shotDecay = 0; //Randomized shot speed offset. Can affect shotspeed
     [SerializeField] float recoil = 0; //recoil of the gun (knockback shooter)
     [SerializeField] float knockbackMultiplier = 0;
@@ -13,6 +14,8 @@ public class Gun : PickUp
     [SerializeField] float spread = 0; //The angle for multishot, which is set.
     [SerializeField] float aimDecay = 0; //Randomized angle. Can affect spread.
     [SerializeField] GameObject bullet = null;
+
+     [SerializeField] AudioClip emptyShoot;
     private AudioSource shootAudio;
     private float lastShot = 0;
     private float delayTime = 0.005f; //Waits 0.005 seconds in order to shoot the bullet. This is needed for extreme high shot speeds.
@@ -34,10 +37,20 @@ public class Gun : PickUp
         {
             lastShot = Time.time + cooldown;
 
-            float rotationStart = Mathf.Floor(numBullets/2) * -spread;
+            if(ammo <= 0) // no more ammo, replace sfx with empty
+            {
+                shootAudio.clip = emptyShoot;
+            }
 
+            //AUDIO
             shootAudio.pitch = Random.Range(0.8f, 1.2f);
             shootAudio.Play();
+            if(ammo <= 0)
+            {
+                return; //Nothing to shoot
+            }
+
+            float rotationStart = Mathf.Floor(numBullets/2) * -spread;
 
             for(int i = 0; i < numBullets; i++)
             {
@@ -56,6 +69,8 @@ public class Gun : PickUp
 
                 StartCoroutine(ApplyVelocityDelay(currentBullet));
             }
+
+            ammo -= 1; //subtract from the ammo
 
             //Apply recoil
             if (recoil > 0)

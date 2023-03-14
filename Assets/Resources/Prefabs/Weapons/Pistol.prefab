@@ -184,6 +184,7 @@ MonoBehaviour:
   TYPE: GUN
   cooldown: 0.5
   shotSpeed: 25
+  ammo: 12
   shotDecay: 0
   recoil: 0
   knockbackMultiplier: 1
@@ -191,6 +192,7 @@ MonoBehaviour:
   spread: 0
   aimDecay: 0
   bullet: {fileID: 634590873741608895, guid: 4fda695fd43d13a48bded21331d76c48, type: 3}
+  emptyShoot: {fileID: 8300000, guid: 6afb48e71baec664d8c92c30d37c8e5c, type: 3}
 --- !u!82 &8459713228060731682
 AudioSource:
   m_ObjectHideFlags: 0

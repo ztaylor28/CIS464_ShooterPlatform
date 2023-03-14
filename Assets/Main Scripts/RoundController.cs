@@ -149,6 +149,16 @@ public class RoundController : MonoBehaviour
         else if(players.Count <= 1) //Normal game and only one player (or zero if they all died.)
         {
             inProgress = false; // round is not in progress anymore.
+
+            if(players.Count == 0)
+            {
+                //Make everyone alive again so they can still progress.
+                foreach(Transform player in gameData.GamePlayers)
+                {
+                    player.gameObject.SetActive(true); //playable again.
+                }
+            }
+
             SceneManager.LoadScene("Winner");
         }
     }
