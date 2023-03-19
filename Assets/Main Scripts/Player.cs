@@ -145,7 +145,7 @@ public class Player : MonoBehaviour
 
             heldItem = closestPickUp;
         }
-        else //throw
+        else if(!booleans["isRolling"]) //throw
         {
             heldItem.GetComponent<BoxCollider2D>().enabled = true;
             heldItem.GetComponent<Rigidbody2D>().isKinematic = false;

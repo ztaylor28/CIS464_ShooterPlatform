@@ -396,6 +396,17 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""9f15650e-151f-467f-b486-a84d9ff214d1"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Roll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""386eb873-cb95-41b8-9403-8822479718be"",
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",

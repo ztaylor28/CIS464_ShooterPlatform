@@ -129,7 +129,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6676263930490856348, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: knockbackMultiplier
-      value: 0.75
+      value: 0.3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
