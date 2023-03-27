@@ -22,7 +22,8 @@ public class MapController : MonoBehaviour
         FisherShuffle(levels); //Shuffle the level. This is so we do not have to keep randomly calling values.
 
         //Load the first level.
-        LoadLevel(0);
+        bool prevLevelFlipped = (Tools.RandomInteger(1,2) == 1) ? true : false; //was the previous level flipped?
+        LoadLevel(0, prevLevelFlipped); //First level can also be randomly flipped.
 
         //Starting from the first level... (start at 1, as the first level is already loaded.)
         for(int curSeg = 1; curSeg < maxLength || levels.Count == 0; curSeg++) //From 1 to max length...
@@ -32,30 +33,45 @@ public class MapController : MonoBehaviour
 
             List<int> validExitTiles = CalculateValidTiles(prevTilemaps, true);
 
+            if(prevLevelFlipped) //it is flip, we need to manually flip the validExitTiles too due to Unity not auto compress the bounds.
+                flipList(validExitTiles, prevLevelFlipped, GetBounds(prevTilemaps));
+
             //Now, go through EACH of the possible level. If the level entry matches most of the level exit, choose that level.
             int posLevel = 0;
             for(; posLevel < levels.Count; posLevel++) //loop through all levels, see which one can fit. (possibleLevel)
             {
                 Transform level = levels[posLevel];
                 Tilemap[] levelTilemaps = GetLevelTileMaps(level);
+                var bounds = GetBounds(levelTilemaps);
 
                 List<int> validEntryTiles = CalculateValidTiles(levelTilemaps, false);
-                float totalMatches = 0; //How many matches of entry and exit?
 
-                foreach(int exitTileID in validExitTiles)
+                bool flipped = false;
+
+                //should the level be flipped right away? (Add some more randomness to our levels.)
+                if(Tools.RandomInteger(1,2) == 1)
                 {
-                    if(validEntryTiles.Contains(exitTileID)) //both had the same valid
+                    flipped = true;
+                    flipList(validEntryTiles, flipped, bounds);
+                } 
+                
+                int i = 0;
+                for(; i < 2; i++)
+                {
+                    if(IsValidLevel(validEntryTiles, validExitTiles))
                     {
-                        totalMatches++;
+                        LoadLevel(posLevel, flipped);
+                        prevLevelFlipped = flipped;
+                        break;
+                    }
+                    else if(i == 0) //No match, try reversing.
+                    {
+                        flipped = !flipped;
+                        flipList(validEntryTiles, flipped, bounds);
                     }
                 }
-
-                //Debug.Log(totalMatches/validExitTiles.Count);
-                if(totalMatches > 0 && totalMatches/validExitTiles.Count >= validThreshold) //A majority of the tiles were matched, it is fair game!
-                {
-                    LoadLevel(posLevel);
-                    break; //Go to next segment
-                }
+                if(i != 2) //That mean for loop was broken, which mean a level successfully loaded. Go to next segment.
+                    break;
             }
             
             if(posLevel == levels.Count) //Level failed to load, cut the tower short.
@@ -70,6 +86,48 @@ public class MapController : MonoBehaviour
         lastLevel.position = new Vector2(0, 12 * (segments.Count));
 
         hazardGoal.position = new Vector3(hazardGoal.position.x, lastLevel.position.y - 6, hazardGoal.position.z);
+    }
+
+     void flipList(List<int> list, bool reversed, (int xMin, int xMax, int yMin, int yMax) bounds) //flip all of the positions
+     {
+        for(int i = 0; i < list.Count(); i++)
+        {
+            int globalPosition = list[i];
+            int localPosition = (reversed) ? globalPosition - bounds.xMin : bounds.xMax - globalPosition; //Get the local position based on max vs min
+            list[i] = (reversed) ? bounds.xMax - localPosition : localPosition + bounds.xMin; //reverse by offsetting it based on min/max
+        }
+     }
+
+    bool IsValidLevel(List<int> validEntryTiles, List<int> validExitTiles)
+    {
+        float totalMatches = 0; //How many matches of entry and exit?
+
+        foreach(int exitTileID in validExitTiles)
+        {
+            if(validEntryTiles.Contains(exitTileID)) //both had the same valid
+            {
+                totalMatches++;
+            }
+        }
+
+        //Debug.Log(totalMatches/validExitTiles.Count);
+        print(totalMatches/validExitTiles.Count);
+
+        if(totalMatches > 0 && totalMatches/validExitTiles.Count >= validThreshold) //A majority of the tiles were matched, it is fair game!
+        {
+            return true;
+        }
+        return false;
+    }
+
+    void printList(List<int> list)
+    {
+        string result = "";
+        foreach (var item in list)
+        {
+            result += item.ToString() + ", ";
+        }
+        Debug.Log(result);
     }
 
     List<int> CalculateValidTiles(Tilemap[] tileMaps, bool isExit) //Calculate the valid tiles. Exit is the one the player is coming out of (previous level)
@@ -88,7 +146,7 @@ public class MapController : MonoBehaviour
         {
             foreach(Tilemap tileMap in tileMaps)
             {
-                TileBase tile = tileMap.GetTile(new Vector3Int(i + bounds.xMin, isExit ? bounds.yMax - 1 : bounds.yMin, 0));
+                TileBase tile = tileMap.GetTile(new Vector3Int(i + bounds.xMin, isExit ? bounds.yMax - 1 : bounds.yMin, 0)); //exit is top, entry is bottom
 
                 if(!tile) //no tile found for this tilemap, go to next tilemap to see if it has a tile.
                     continue;
@@ -148,9 +206,15 @@ public class MapController : MonoBehaviour
         return (status == 0 || status == 1);
     }
 
-    void LoadLevel(int chosenLevel)
+    void LoadLevel(int chosenLevel, bool flipped)
     {
         Transform level = Instantiate(levels[chosenLevel]); //create the level
+  
+        if(flipped)
+        {
+            level.localScale *= new Vector2(-1,1); //flip the local scale
+        }
+
         levels.RemoveAt(chosenLevel); // Not valid anymore.
         segments.Add(level);
 
@@ -203,7 +267,7 @@ public class MapController : MonoBehaviour
 		// Loops through array
 		for (int i = list.Count - 1; i > 0; i--)
 		{
-			int toSwap = Random.Range(0,i);
+			int toSwap = Tools.RandomInteger(0,i); //for some reason range is exclusive.
 
 			// Swap the new and old values
             Transform temp = list[i];

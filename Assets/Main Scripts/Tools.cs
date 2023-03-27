@@ -28,4 +28,9 @@ public static class Tools
     {
         tran.localScale = new Vector2 (sign * Mathf.Abs(tran.localScale.x), tran.localScale.y);
     }
+
+    public static int RandomInteger(int min, int max)
+    {
+        return Random.Range(min,max + 1); //I HATE EXCLUSIVE RANDOM!!!!!!!!!!!!!!!!
+    }
 }
