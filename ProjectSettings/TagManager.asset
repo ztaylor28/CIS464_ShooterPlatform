@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - PlayerSprite
+  - Bullet
+  - Target
   layers:
   - Default
   - TransparentFX

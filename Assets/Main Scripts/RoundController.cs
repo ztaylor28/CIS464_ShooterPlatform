@@ -24,6 +24,8 @@ public class RoundController : MonoBehaviour
     private bool inProgress = false;
     
     private List<Transform> players;
+
+    private List<GameObject> targets;
     
     // Start is called before the first frame update
     void Start()
@@ -63,6 +65,11 @@ public class RoundController : MonoBehaviour
             UpdateCamera();
             VerifyElimination();
             VerifyWinner();
+
+            if(gameData.GamePlayers.Count == 1) // singleplayer
+            {
+                VerifyTargets();
+            }
         }
     }
 
@@ -117,6 +124,35 @@ public class RoundController : MonoBehaviour
         door.GetComponent<Door>().OpenDoors();
         buzzSaws.GetComponent<Hazards>().enabled = true; //Start the saw!
         inProgress = true;
+
+        if(players.Count == 1) // only one player, spawn some targets.
+            TargetMode();
+    }
+
+    void TargetMode() //enables TargetMode.
+    {
+        targets = new List<GameObject>(); //Set up targets.
+
+        foreach (Transform level in GetComponent<MapController>().Segments)
+        {
+            level.Find("Targets").gameObject.SetActive(true);
+
+            foreach(Transform target in Tools.GetChildren(level.Find("Targets")))
+            {
+                targets.Add(target.gameObject); //add to list
+            }
+        }
+    }
+
+    void VerifyTargets() //update GUI, and verify if a target was destroyed
+    {
+        for(int i = targets.Count - 1; i >= 0; i--)
+        {
+            if(targets[i] == null)
+            {
+                targets.RemoveAt(i);
+            }
+        }
     }
 
     void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
@@ -138,13 +174,18 @@ public class RoundController : MonoBehaviour
 
     void VerifyWinner()
     {
-        if(gameData.GamePlayers.Count == 1) //Playing by themselves and they died, just reset.
+        if(gameData.GamePlayers.Count == 1) //Playing by themselves
         {
-            if(players.Count == 0)
+            if(players.Count == 0) //they died
             {
                 inProgress = false; // round is not in progress anymore.
                 SceneManager.LoadScene("Tower"); //reload the scene.
             }
+            else if(targets.Count == 0) //woah they got all the targets!
+            {
+                SceneManager.LoadScene("Winner");
+            }
+            Debug.Log(targets.Count);
         }
         else if(players.Count <= 1) //Normal game and only one player (or zero if they all died.)
         {

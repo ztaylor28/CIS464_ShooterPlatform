@@ -14,10 +14,12 @@ public class MapController : MonoBehaviour
 
     private List<Transform> segments;
 
+    public List<Transform> Segments { get => segments; set => segments = value; }
+
     void Start()
     {
         levels = Resources.LoadAll<Transform>("Prefabs/Levels").ToList(); // Put all levels in array.
-        segments = new List<Transform>(); //The actual levels loaded in the game.
+        Segments = new List<Transform>(); //The actual levels loaded in the game.
 
         FisherShuffle(levels); //Shuffle the level. This is so we do not have to keep randomly calling values.
 
@@ -29,7 +31,7 @@ public class MapController : MonoBehaviour
         for(int curSeg = 1; curSeg < maxLength || levels.Count == 0; curSeg++) //From 1 to max length...
         {
             //At the previous segment, get the valid EXIT blocks.
-            Tilemap[] prevTilemaps = GetLevelTileMaps(segments[curSeg - 1]);
+            Tilemap[] prevTilemaps = GetLevelTileMaps(Segments[curSeg - 1]);
 
             List<int> validExitTiles = CalculateValidTiles(prevTilemaps, true);
 
@@ -82,8 +84,8 @@ public class MapController : MonoBehaviour
 
         //Last level has a bunch of weapons.
         Transform lastLevel = Instantiate(Resources.Load<Transform>("Prefabs/War"));
-        segments.Add(lastLevel);
-        lastLevel.position = new Vector2(0, 12 * (segments.Count));
+        Segments.Add(lastLevel);
+        lastLevel.position = new Vector2(0, 12 * (Segments.Count));
 
         hazardGoal.position = new Vector3(hazardGoal.position.x, lastLevel.position.y - 6, hazardGoal.position.z);
     }
@@ -216,9 +218,9 @@ public class MapController : MonoBehaviour
         }
 
         levels.RemoveAt(chosenLevel); // Not valid anymore.
-        segments.Add(level);
+        Segments.Add(level);
 
-        level.position = new Vector2(0, 12 * (segments.Count));
+        level.position = new Vector2(0, 12 * (Segments.Count));
     }
 
     Tilemap[] GetLevelTileMaps(Transform level) //Get all of the tilemaps in a level.

@@ -18,8 +18,15 @@ public class IntroCameraMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        CameraMovement();
-        TargetReached();
+        if (Input.anyKey) //End the screen prematurely.
+        {
+            SceneManager.LoadScene("MainMenu");
+        }
+        else
+        {
+            CameraMovement();
+            TargetReached();
+        }
     }
 
     void CameraMovement()

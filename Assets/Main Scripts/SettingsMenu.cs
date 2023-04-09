@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Audio;
+using UnityEngine.EventSystems;
 
 public class SettingsMenu : MonoBehaviour
 {
-
     public AudioMixer audioMixer;
+
+    void Update()
+    {
+ 
+    }
+
     public void BackToMain()
     {
         SceneManager.LoadScene("MainMenu"); 
