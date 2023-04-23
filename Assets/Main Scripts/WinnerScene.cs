@@ -6,7 +6,8 @@ public class WinnerScene : MonoBehaviour //set up the logic needed for winner sc
 {
     [SerializeField] GameData gameData;
     [SerializeField] TMP_Text winnerMessage;
-    [SerializeField] Transform spawn;
+    [SerializeField] Transform winnerPosition;
+    [SerializeField] Transform loserPosition;
     [SerializeField] Transform confetti;
     [SerializeField] Transform blackBackground;
     [SerializeField] AudioClip noWinnerTheme;
@@ -16,29 +17,37 @@ public class WinnerScene : MonoBehaviour //set up the logic needed for winner sc
     // Start is called before the first frame update
     void Start()
     {
+        PlayerManager.Instance.EnableJoining(true);
+
         List<Transform> roundPlayers = gameData.RoundPlayers;
 
+        Transform winner = null;
         if(roundPlayers.Count == 1)
         {
-            Transform winner = roundPlayers[0];
+            winner = roundPlayers[0];
 
             int playerID = gameData.GamePlayers.FindIndex(a => a == winner) + 1;
             winnerMessage.text = "Player " + playerID + " is the winner!";
 
-            winner.position = spawn.position;
+            winner.position = winnerPosition.position;
             MusicPlayer.Instance.PlayMusic("Winner");
         }
         else //Oh... a tie. Awkward.
         {
-            foreach(Transform player in gameData.GamePlayers)
-            {
-                player.position = spawn.position;
-            }
-
             winnerMessage.text = "There were no winners...";
             blackBackground.GetComponent<Renderer>().enabled = true;
             Destroy(confetti.gameObject);
             MusicPlayer.Instance.PlayMusic("NoWinner");
+        }
+
+        //rest of the players...
+        foreach(Transform player in gameData.GamePlayers)
+        {
+            if(player != winner)
+            {
+                player.gameObject.SetActive(true); //playable again.
+                player.position = loserPosition.position;
+            }
         }
     }
 }

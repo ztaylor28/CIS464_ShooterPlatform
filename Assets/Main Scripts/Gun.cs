@@ -15,6 +15,8 @@ public class Gun : PickUp
     [SerializeField] float aimDecay = 0; //Randomized angle. Can affect spread.
     [SerializeField] GameObject bullet = null;
 
+    [SerializeField] bool golden = false; //if a weapon is golden, it will have infinite ammo
+
      [SerializeField] AudioClip emptyShoot;
     private AudioSource shootAudio;
     private float lastShot = 0;
@@ -70,7 +72,8 @@ public class Gun : PickUp
                 StartCoroutine(ApplyVelocityDelay(currentBullet));
             }
 
-            ammo -= 1; //subtract from the ammo
+            if(!golden) //a plain weapon.
+                ammo -= 1; //subtract from the ammo
 
             //Apply recoil
             if (recoil > 0)
@@ -95,5 +98,13 @@ public class Gun : PickUp
         RaycastHit2D hit = Physics2D.Raycast(grip.position, gripToBarrel.normalized, gripToBarrel.magnitude, LayerMask.GetMask("Ground")); //raycast from grip to barrel, checking if it intersecting ground
 
         return !hit.collider;
+    }
+
+    public void makeGolden(bool boolean) //make the weapon golden.
+    {
+        Color color = boolean ? new Color(255, 240, 0) : new Color(255, 255, 255);
+
+        this.GetComponent<SpriteRenderer>().color = color;
+        golden = boolean;
     }
 }

@@ -13,16 +13,37 @@ public class GameData : ScriptableObject //Consists of data relating to the main
     public List<Transform> GamePlayers { get => gamePlayers; }
     public List<Transform> RoundPlayers { get => roundPlayers; }
 
-    public void CreatePlayer(Transform player) //Creates a player data.
+    public void CreatePlayer(Transform newPlayer) //Creates a player data.
     {
-        player.GetComponent<SpriteRenderer>().color = colors[gamePlayers.Count]; //Assign a color to the player.
-        player.Find("AimArm").GetComponent<SpriteRenderer>().color = colors[gamePlayers.Count];
+        //Find which color to give to the player.
+        List<Color> usedColors = new List<Color>();
+        foreach(Transform player in GamePlayers)
+        {
+            usedColors.Add(player.GetComponent<Player>().Color);
+        }
+
+        foreach(Color color in colors)
+        {
+            if(!usedColors.Contains(color))
+            {
+                newPlayer.GetComponent<Player>().SetColor(color);
+                break;
+            }
+        }
         
-        gamePlayers.Add(player);
+        gamePlayers.Add(newPlayer);
+    }
+
+    public void DisconnectPlayer(Transform player)
+    {
+        gamePlayers.Remove(player);
+        roundPlayers.Remove(player);
     }
 
     public void EliminatePlayer(Transform player)
     {
+        MusicPlayer.PlaySound("PlayerDeath", player);
+        Particles.PlayParticle("Burst", new Color[]{player.GetComponent<Player>().Color}, player);
         roundPlayers.Remove(player);
         player.gameObject.SetActive(false); //Disable everything in the player.
     }

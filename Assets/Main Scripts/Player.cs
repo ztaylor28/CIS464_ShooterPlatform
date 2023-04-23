@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -42,11 +43,17 @@ public class Player : MonoBehaviour
     private float lastGroundedTime = 0;
 
     private string controlScheme;
+    private Color color; //color of the player
+    private bool destroyed = false; //to differnate from OnDestroy vs Active = false
     private Gamepad device;
 
      public Vector2 LastGroundedPosition { get => lastGroundedPosition; set => lastGroundedPosition = value; }
     public string ControlScheme { get => controlScheme; set => controlScheme = value; }
     public Gamepad Device { get => device; set => device = value; }
+
+    public Color Color { get => color; set => color = value; }
+    public bool Destroyed { get => destroyed; set => destroyed = value; }
+    public Transform HeldItem { get => heldItem; set => heldItem = value; } //useful to delete heldItems from players.
 
     void Start()
     {
@@ -84,7 +91,7 @@ public class Player : MonoBehaviour
 
     void OnEnable() //SetActive(true)
     {
-        
+        GetComponent<PlayerInput>().actions.FindAction("Join").Disable(); //Player cannot join anymore.
     }
 
     void OnDisable() //Reset all of the booleans and others, so funky stuff won't occur when player respawn
@@ -95,6 +102,8 @@ public class Player : MonoBehaviour
         {
             device.SetMotorSpeeds(0f, 0f);
         }
+
+        DestroyHeldItem();
 
         moveInput = Vector2.zero;
     }
@@ -127,21 +136,16 @@ public class Player : MonoBehaviour
             closestPickUp.GetComponent<BoxCollider2D>().enabled = false; //Gun does not need a hitbox when held.
             closestPickUp.GetComponent<Rigidbody2D>().isKinematic = true; //so gun doesn't have actual physics when held
             closestPickUp.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            closestPickUp.GetComponent<Rigidbody2D>().angularVelocity = 0;
 
             //Same local scale as player.
+            closestPickUp.parent = null; //In case weapon is in a reflected level, just set it to null so local scale won't be messed up.
             closestPickUp.localScale = new Vector2 (Mathf.Sign(transform.localScale.x) * Mathf.Abs(closestPickUp.localScale.x), closestPickUp.localScale.y);
 
             //snap to player
             closestPickUp.rotation = aimArm.Find("Hold").rotation;
             closestPickUp.position = aimArm.Find("Hold").position + (closestPickUp.position - closestPickUp.Find("Grip").transform.position);
-            //closestPickUp.parent = aimArm.Find("Hold");
-
-            //We cannot change the parent to the arm anymore due to Players not being able to destroy on load anymore. (This results in the gun to also destroy on load lol)
-            ConstraintSource source = new ConstraintSource();
-            source.sourceTransform = hand;
-            source.weight = 1;
-            closestPickUp.GetComponent<ParentConstraint>().AddSource(source);
-            closestPickUp.GetComponent<ParentConstraint>().constraintActive = true;
+            closestPickUp.parent = aimArm.Find("Hold");
 
             heldItem = closestPickUp;
         }
@@ -149,9 +153,8 @@ public class Player : MonoBehaviour
         {
             heldItem.GetComponent<BoxCollider2D>().enabled = true;
             heldItem.GetComponent<Rigidbody2D>().isKinematic = false;
-            //heldItem.parent = null; //back to scene (Not needed anymore due to using Parent Constraint now, but it was pretty cool to know!)
-
-            heldItem.GetComponent<ParentConstraint>().RemoveSource(0); //remove the source.
+            heldItem.parent = null; //put the gun to the root of the scene (DontDestroyOnLoad)
+            SceneManager.MoveGameObjectToScene(heldItem.gameObject, SceneManager.GetActiveScene()); //move the gun back to the scene.
 
             heldItem.GetComponent<Rigidbody2D>().AddForce(-aimArm.up * 500);
 
@@ -293,7 +296,7 @@ public class Player : MonoBehaviour
         }
         else if (!booleans["isJumping"]) //If player is not holding jump key
         {
-            if(Mathf.Sign(myRigidbody.velocity.y) > 0) //If the player has upward momentum, terminate it. (short hop)
+            if(Mathf.Sign(myRigidbody.velocity.y) > 0 && !booleans["isStunned"]) //If the player has upward momentum, terminate it. (short hop)
             {
                 ChangeVelocity(new Vector2(myRigidbody.velocity.x, 0f));
             }
@@ -331,9 +334,6 @@ public class Player : MonoBehaviour
     void FlipSprite(int sign)
     {
         Tools.FlipSprite(sign, transform);
-
-        if (heldItem) //Also flip the held item. This is needed as the gun is not parented to the player anymore.
-            Tools.FlipSprite(sign, heldItem);
     }
 
     public void ChangeVelocity(Vector2 vector) //This is where the PLAYER script changes the velocity. Uses booleans["isStunned"] to verify if velocity should update or not (means player is being knockbacked.)
@@ -351,8 +351,7 @@ public class Player : MonoBehaviour
         {
             vector = new Vector2(vector.x, vector.y + -Physics.gravity.y); //Add gravity to the mix, to make the knockback more noticable.
         }
-        Debug.Log(vector.y);
-
+        
         if(!booleans["isStunned"]) //Player is not stunned already. Reset velocity to make initial impact stronger.
         {
             myRigidbody.velocity = Vector2.zero; //Resets velocity, so knockback can actually feel impactful.
@@ -376,7 +375,8 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(0.1f); //Wait a bit. This is so weapons such as Assualt Rifle can still "stun" despite it weak knockback.
 
                                                  //is player trying to resist?
-        while(Mathf.Abs(myRigidbody.velocity.x) > (moveInput.magnitude > 0.01 ? runSpeed : walkSpeed/2) || Mathf.Abs(myRigidbody.velocity.y) > jumpHeight)
+        //while(Mathf.Abs(myRigidbody.velocity.x) > (moveInput.magnitude > 0.01 ? runSpeed : walkSpeed/2) || Mathf.Abs(myRigidbody.velocity.y) > jumpHeight)
+        while(myRigidbody.velocity.magnitude > (moveInput.magnitude > 0.01 ? runSpeed : walkSpeed/2))
         {
             //myRigidbody.velocity += new Vector2 (-Mathf.Sign(myRigidbody.velocity.x) * knockbackDragStrength/100, -Mathf.Sign(myRigidbody.velocity.y) * knockbackDragStrength/100);
             yield return new WaitForSeconds(0);
@@ -393,6 +393,21 @@ public class Player : MonoBehaviour
 
         device.SetMotorSpeeds(0f, 0f); //stop rumble
     }
+
+    public void SetColor(Color color) //set the player color.
+    {
+        this.color = color;
+        GetComponent<SpriteRenderer>().color = color; //Assign a color to the player.
+        transform.Find("AimArm").GetComponent<SpriteRenderer>().color = color; //aimArm is not set when calling this.
+    }
+
+    public void DestroyHeldItem() //Allows outside script, such as round countroller, to easily delete items
+    {
+        if(heldItem) //was holding a weapon
+        {
+            Destroy(heldItem.gameObject);
+        }
+    }
     
     //HELD BUTTONS
     void OnFire(InputValue value){booleans["isFiring"] = value.isPressed;}
@@ -404,23 +419,20 @@ public class Player : MonoBehaviour
     void OnJump(InputValue value){booleans["isJumping"] = value.isPressed;}
     void OnRun(InputValue value){booleans["isRunning"] = value.isPressed;}
 
+    void OnLeave(InputValue value){
+        destroyed = true;
+        Destroy(gameObject);
+    } 
 
-/* Possible way to fix PlayerInputMananger; just disable everything except playerInput.
-    public void Active(bool isActive)
+    void OnJoin(InputValue value) //this should never be fired.
     {
-        foreach(Behaviour comp in GetComponents<Behaviour>())
-        {
-            if(comp != playerInput)
-            {
-                comp.enabled = isActive;
-            }
-            else
-            {
-   
-            }
-        }
+        Debug.Log("I DISABLED YOU!");
     }
-    */
+
+    void OnDeviceLost() //device was lost, disconnect
+    {
+        OnLeave(null);
+    }
 
     //DevConsole
     void OnDevConsole()

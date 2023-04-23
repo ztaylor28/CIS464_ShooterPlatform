@@ -109,6 +109,15 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""Leave"",
+                    ""type"": ""Button"",
+                    ""id"": ""61a53f5f-00f9-40f1-8ae7-6f1eda2eb5e2"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Hold(duration=1.02)"",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Pause"",
                     ""type"": ""Button"",
                     ""id"": ""e152f9c6-50d0-4e4b-85b3-5e266a1fe8e2"",
@@ -512,6 +521,28 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3452f936-d5ab-4afa-93cf-cb194bca19e6"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Leave"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b6cc033a-8875-48a2-a01f-63e50f624bd1"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Leave"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1108,6 +1139,7 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
         m_Player_Run = m_Player.FindAction("Run", throwIfNotFound: true);
         m_Player_Grab = m_Player.FindAction("Grab", throwIfNotFound: true);
         m_Player_Join = m_Player.FindAction("Join", throwIfNotFound: true);
+        m_Player_Leave = m_Player.FindAction("Leave", throwIfNotFound: true);
         m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
@@ -1189,6 +1221,7 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Run;
     private readonly InputAction m_Player_Grab;
     private readonly InputAction m_Player_Join;
+    private readonly InputAction m_Player_Leave;
     private readonly InputAction m_Player_Pause;
     public struct PlayerActions
     {
@@ -1203,6 +1236,7 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
         public InputAction @Run => m_Wrapper.m_Player_Run;
         public InputAction @Grab => m_Wrapper.m_Player_Grab;
         public InputAction @Join => m_Wrapper.m_Player_Join;
+        public InputAction @Leave => m_Wrapper.m_Player_Leave;
         public InputAction @Pause => m_Wrapper.m_Player_Pause;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
@@ -1240,6 +1274,9 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
                 @Join.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnJoin;
                 @Join.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnJoin;
                 @Join.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnJoin;
+                @Leave.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLeave;
+                @Leave.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLeave;
+                @Leave.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLeave;
                 @Pause.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPause;
                 @Pause.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPause;
                 @Pause.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPause;
@@ -1274,6 +1311,9 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
                 @Join.started += instance.OnJoin;
                 @Join.performed += instance.OnJoin;
                 @Join.canceled += instance.OnJoin;
+                @Leave.started += instance.OnLeave;
+                @Leave.performed += instance.OnLeave;
+                @Leave.canceled += instance.OnLeave;
                 @Pause.started += instance.OnPause;
                 @Pause.performed += instance.OnPause;
                 @Pause.canceled += instance.OnPause;
@@ -1442,6 +1482,7 @@ public partial class @PlayersActions : IInputActionCollection2, IDisposable
         void OnRun(InputAction.CallbackContext context);
         void OnGrab(InputAction.CallbackContext context);
         void OnJoin(InputAction.CallbackContext context);
+        void OnLeave(InputAction.CallbackContext context);
         void OnPause(InputAction.CallbackContext context);
     }
     public interface IUIActions

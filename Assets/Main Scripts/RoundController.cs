@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 using UnityEngine.SceneManagement;
 
 public class RoundController : MonoBehaviour
@@ -9,9 +10,11 @@ public class RoundController : MonoBehaviour
     [SerializeField] GameObject door; //the door to open.
     [SerializeField] GameObject readyZone; //the door to open.
     [SerializeField] GameObject buzzSaws;
+    [SerializeField] Transform targetCounter;
+
+    [SerializeField] Transform lobbyWeapons;
     [SerializeField] GameData gameData;
     private BoxCollider2D readyCollider;
-    private PlayerInputManager playerManager;
     
     private Camera cam;
 
@@ -36,10 +39,10 @@ public class RoundController : MonoBehaviour
         lerpEndPos = cam.transform.position;
 
         readyCollider = readyZone.GetComponent<BoxCollider2D>();
-        playerManager = GetComponent<PlayerInputManager>();
 
         players = gameData.RoundPlayers;
         players.Clear(); //clear the round.
+
 
         if(gameData.GamePlayers.Count > 0) // players are already in the game. Load them.
         {
@@ -50,7 +53,7 @@ public class RoundController : MonoBehaviour
                 players.Add(player);
             }
         }
-        playerManager.EnableJoining(); // Players can join after preexisting players are loaded in.
+        PlayerManager.Instance.EnableJoining(true); // Players can join after preexisting players are loaded in.
     }
 
     // Update is called once per frame
@@ -69,6 +72,11 @@ public class RoundController : MonoBehaviour
             if(gameData.GamePlayers.Count == 1) // singleplayer
             {
                 VerifyTargets();
+
+                //make gun gold (infinite ammo for target mode)
+                Transform holdItem = gameData.RoundPlayers[0].GetComponent<Player>().HeldItem;
+                if(holdItem)
+                    holdItem.GetComponent<Gun>().makeGolden(true);
             }
         }
     }
@@ -119,7 +127,7 @@ public class RoundController : MonoBehaviour
 
     void BeginRound()
     {
-        playerManager.DisableJoining(); //Players cannot join anymore!
+        PlayerManager.Instance.EnableJoining(false); //Players cannot join anymore!
         MusicPlayer.Instance.PlayMusic("InProgress");
         door.GetComponent<Door>().OpenDoors();
         buzzSaws.GetComponent<Hazards>().enabled = true; //Start the saw!
@@ -127,10 +135,20 @@ public class RoundController : MonoBehaviour
 
         if(players.Count == 1) // only one player, spawn some targets.
             TargetMode();
+        else
+        {
+            Destroy(lobbyWeapons.gameObject); //destroy the lobby.
+
+            foreach(Transform player in players)
+            {
+                player.GetComponent<Player>().DestroyHeldItem(); // in case player is holding an item.
+            }
+        }
     }
 
     void TargetMode() //enables TargetMode.
     {
+        targetCounter.parent.gameObject.SetActive(true); //enable gui
         targets = new List<GameObject>(); //Set up targets.
 
         foreach (Transform level in GetComponent<MapController>().Segments)
@@ -141,6 +159,12 @@ public class RoundController : MonoBehaviour
             {
                 targets.Add(target.gameObject); //add to list
             }
+        }
+
+        //make the starting weapons golden
+        foreach(Transform weapon in Tools.GetChildren(lobbyWeapons))
+        {
+            weapon.GetComponent<Gun>().makeGolden(true);
         }
     }
 
@@ -153,6 +177,7 @@ public class RoundController : MonoBehaviour
                 targets.RemoveAt(i);
             }
         }
+        targetCounter.GetComponent<TMP_Text>().text = targets.Count.ToString() + " REMAINING";
     }
 
     void VerifyElimination() //Verify if a player should be eliminated (they are at the bottom of the camera)
@@ -185,20 +210,10 @@ public class RoundController : MonoBehaviour
             {
                 SceneManager.LoadScene("Winner");
             }
-            Debug.Log(targets.Count);
         }
         else if(players.Count <= 1) //Normal game and only one player (or zero if they all died.)
         {
             inProgress = false; // round is not in progress anymore.
-
-            if(players.Count == 0)
-            {
-                //Make everyone alive again so they can still progress.
-                foreach(Transform player in gameData.GamePlayers)
-                {
-                    player.gameObject.SetActive(true); //playable again.
-                }
-            }
 
             SceneManager.LoadScene("Winner");
         }
@@ -223,28 +238,5 @@ public class RoundController : MonoBehaviour
         avgPosition /= (players.Count + 1); // + 1 because of the strongestPosition
 
         return avgPosition;
-    }
-
-    //PLAYER JOINS
-    void OnPlayerJoined(PlayerInput player)
-    {
-        if(!gameData.GamePlayers.Contains(player.transform)) //This is a completely new player. (For some reason, onPlayJoined get called upon new scene. But we can do this check to prevent any conflicts.)
-        {
-            gameData.CreatePlayer(player.transform);
-            DontDestroyOnLoad(player.gameObject); //We do not want players to get destroyed. Makes resetting scene much easier!
-            gameData.RoundPlayers.Add(player.transform); //add player to the round.
-        }
-        else //Already exist. Reset their control scheme in case Unity reset it.
-        { //TODO: I hate this bandaid solution. But if it works, it works.
-            Player playerScript = player.GetComponent<Player>();
-            if (playerScript.ControlScheme == "Gamepad")
-            {
-                player.SwitchCurrentControlScheme(playerScript.ControlScheme, playerScript.Device);
-            }
-            else //keyboard and mouse
-            {
-                player.SwitchCurrentControlScheme(playerScript.ControlScheme, Keyboard.current, Mouse.current);
-            }
-        }
     }
 }

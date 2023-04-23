@@ -53,4 +53,16 @@
         }
 
     }
+
+    public static void PlaySound(string sound, Transform root) //play a sound effect
+    {
+        foreach(AudioClip clip in Instance.musicTracks)
+        {
+            if (clip.name.Equals(sound))
+            {
+                AudioSource.PlayClipAtPoint(clip, root.position);
+                break;
+            }
+        }
+    }
  }

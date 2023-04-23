@@ -113,7 +113,7 @@ public class MapController : MonoBehaviour
         }
 
         //Debug.Log(totalMatches/validExitTiles.Count);
-        print(totalMatches/validExitTiles.Count);
+        //print(totalMatches/validExitTiles.Count);
 
         if(totalMatches > 0 && totalMatches/validExitTiles.Count >= validThreshold) //A majority of the tiles were matched, it is fair game!
         {
