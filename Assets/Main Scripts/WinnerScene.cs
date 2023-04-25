@@ -26,6 +26,8 @@ public class WinnerScene : MonoBehaviour //set up the logic needed for winner sc
         {
             winner = roundPlayers[0];
 
+            winner.GetComponent<Player>().DestroyHeldItem();
+
             int playerID = gameData.GamePlayers.FindIndex(a => a == winner) + 1;
             winnerMessage.text = "Player " + playerID + " is the winner!";
 

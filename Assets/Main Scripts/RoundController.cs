@@ -23,6 +23,8 @@ public class RoundController : MonoBehaviour
     private float lerpGoalTime;
     private float lerpCurrentTime;
 
+    private bool isTargetMode = false;
+
     private float scrollSpeed = 5;
     private bool inProgress = false;
     
@@ -150,6 +152,7 @@ public class RoundController : MonoBehaviour
     {
         targetCounter.parent.gameObject.SetActive(true); //enable gui
         targets = new List<GameObject>(); //Set up targets.
+        isTargetMode = true; //used to differnate from single player vs multiplayer
 
         foreach (Transform level in GetComponent<MapController>().Segments)
         {
@@ -199,7 +202,7 @@ public class RoundController : MonoBehaviour
 
     void VerifyWinner()
     {
-        if(gameData.GamePlayers.Count == 1) //Playing by themselves
+        if(isTargetMode)
         {
             if(players.Count == 0) //they died
             {
