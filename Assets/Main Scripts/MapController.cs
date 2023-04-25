@@ -25,18 +25,19 @@ public class MapController : MonoBehaviour
 
         //Load the first level.
         bool prevLevelFlipped = (Tools.RandomInteger(1,2) == 1) ? true : false; //was the previous level flipped?
-        LoadLevel(0, prevLevelFlipped); //First level can also be randomly flipped.
+        LoadLevel(0, 5, prevLevelFlipped); //First level can also be randomly flipped.
 
         //Starting from the first level... (start at 1, as the first level is already loaded.)
         for(int curSeg = 1; curSeg < maxLength || levels.Count == 0; curSeg++) //From 1 to max length...
         {
             //At the previous segment, get the valid EXIT blocks.
             Tilemap[] prevTilemaps = GetLevelTileMaps(Segments[curSeg - 1]);
+            var prevBounds = GetBounds(prevTilemaps); //the prev level bounds
 
             List<int> validExitTiles = CalculateValidTiles(prevTilemaps, true);
 
             if(prevLevelFlipped) //it is flip, we need to manually flip the validExitTiles too due to Unity not auto compress the bounds.
-                flipList(validExitTiles, prevLevelFlipped, GetBounds(prevTilemaps));
+                flipList(validExitTiles, prevLevelFlipped, prevBounds);
 
             //Now, go through EACH of the possible level. If the level entry matches most of the level exit, choose that level.
             int posLevel = 0;
@@ -61,8 +62,8 @@ public class MapController : MonoBehaviour
                 for(; i < 2; i++)
                 {
                     if(IsValidLevel(validEntryTiles, validExitTiles))
-                    {
-                        LoadLevel(posLevel, flipped);
+                    {                       //Calculate offset.
+                        LoadLevel(posLevel, GetSizeY(Segments[curSeg - 1])/2 + Segments[curSeg - 1].position.y, flipped);
                         prevLevelFlipped = flipped;
                         break;
                     }
@@ -82,10 +83,10 @@ public class MapController : MonoBehaviour
             }
         }
 
-        //Last level has a bunch of weapons.
+        //Last level has a bunch of weapons. TODO: This is repeating code, we can find a way to fit it in the load level function
         Transform lastLevel = Instantiate(Resources.Load<Transform>("Prefabs/War"));
         Segments.Add(lastLevel);
-        lastLevel.position = new Vector2(0, 12 * (Segments.Count));
+        lastLevel.position = new Vector2(0, (GetSizeY(Segments[Segments.Count - 2])/2 + Segments[Segments.Count - 2].position.y) + 2 + GetSizeY(lastLevel)/2);
 
         hazardGoal.position = new Vector3(hazardGoal.position.x, lastLevel.position.y - 6, hazardGoal.position.z);
     }
@@ -208,7 +209,7 @@ public class MapController : MonoBehaviour
         return (status == 0 || status == 1);
     }
 
-    void LoadLevel(int chosenLevel, bool flipped)
+    void LoadLevel(int chosenLevel, float offsetPosition, bool flipped)
     {
         Transform level = Instantiate(levels[chosenLevel]); //create the level
   
@@ -220,7 +221,8 @@ public class MapController : MonoBehaviour
         levels.RemoveAt(chosenLevel); // Not valid anymore.
         Segments.Add(level);
 
-        level.position = new Vector2(0, 12 * (Segments.Count));
+        Debug.Log(offsetPosition);
+        level.position = new Vector2(0, offsetPosition + 2 + GetSizeY(level)/2);
     }
 
     Tilemap[] GetLevelTileMaps(Transform level) //Get all of the tilemaps in a level.
@@ -262,6 +264,22 @@ public class MapController : MonoBehaviour
         }
 
         return (xMin, xMax, yMin, yMax);
+    }
+    
+    float GetSizeY(Transform level) //get the Y position of a levle.
+    {
+        Tilemap[] tilemaps = level.GetComponentsInChildren<Tilemap>();
+
+        // Calculate the combined bounds of all Tilemaps
+        Bounds combinedBounds = new Bounds(Vector3.zero, Vector3.zero);
+        foreach (Tilemap tilemap in tilemaps)
+        {
+            combinedBounds.Encapsulate(tilemap.localBounds); // Encapsulate each Tilemap's local bounds
+        }
+
+        Debug.Log(level.name + " has a size of " + combinedBounds.size.y);
+
+        return combinedBounds.size.y;
     }
 
     void FisherShuffle(List<Transform> list) //Classic shuffle algorithm. Allow us to add some "randomization" quickly.

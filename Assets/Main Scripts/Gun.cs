@@ -106,5 +106,6 @@ public class Gun : PickUp
 
         this.GetComponent<SpriteRenderer>().color = color;
         golden = boolean;
+        ammo += 1; //Just in case the player used up all the ammo.
     }
 }

@@ -17,7 +17,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573424, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_Name
-      value: AssaultRifle
+      value: AssaultRifle Variant
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573425, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_Sprite
@@ -57,11 +57,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.86
+      value: -4.765
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.79
+      value: -2.771
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalPosition.z
@@ -73,15 +73,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4154340244529573438, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -121,7 +121,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6676263930490856348, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}
       propertyPath: knockbackMultiplier
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e644b4e162e290247b57f47e8585fc2c, type: 3}

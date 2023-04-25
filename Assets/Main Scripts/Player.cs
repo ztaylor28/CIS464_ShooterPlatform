@@ -346,7 +346,6 @@ public class Player : MonoBehaviour
 
     public void Knockback(Vector2 vector) //knockback the player.
     {
-        Debug.Log(vector.y);
         if (vector.y > 0) //upwards;
         {
             vector = new Vector2(vector.x, vector.y + -Physics.gravity.y); //Add gravity to the mix, to make the knockback more noticable.
